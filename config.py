@@ -11,7 +11,7 @@ class PPOConfig:
     num_envs: int = 8192
     batch_size: int = 2048
     num_minibatches: int = 32
-    num_timesteps: int = 1_000_000_000
+    num_timesteps: int = 1_500_000_000
     episode_length: int = 1500
     unroll_length: int = 30
     num_updates_per_batch: int = 16

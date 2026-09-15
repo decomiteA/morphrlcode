@@ -5,12 +5,15 @@ import csv
 import os
 import time
 import jax
+import warnings
+os.environ["MUJOCO_GL"] = "egl"
+os.environ["PYOPENGL_PLATFORM"] = "egl"
 from brax import envs
 from brax.training.agents.ppo import train as ppo
 from config import ENV_NAME, PPOConfig
 from rollout import _render_video, _save_data
 jax.config.update("jax_default_matmul_precision", "tensorfloat32")
-
+warnings.filterwarnings('ignore')
 def parse_args() -> argparse.Namespace:
     cfg = PPOConfig()
     p = argparse.ArgumentParser(description="PPO training on MorphologyEnv")
