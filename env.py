@@ -19,7 +19,7 @@ _cfg = PPOConfig()
 
 # ── Default XML file path ─────────────────────────────────────────────────────
 _DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_XML = os.path.join(_DIR, "morphologies/ant.xml")  #change here when doing new training, or rollout!
+DEFAULT_XML = os.path.join(_DIR, "morphologies/baseline.xml")  #change here when doing new training, or rollout!
 
 
 class MorphologyEnv(PipelineEnv):

@@ -19,3 +19,5 @@ python train.py <run_name>
 
 ## Notes 
 I am trying to land on the reward function that would be generating gaits for many different behavior. The question mark is mostly at the level of the velocity term, there is a tracking term along the foreaft direction and, initially, nothing in the lateral direction which means that the agent was free to move laterally. One might have to move to positive rewards, using the gaussian transformation.
+
+The issue has actually be fixed. There was a randomly large number set as default in the motor noise term for the behavioral rollouts.
