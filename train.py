@@ -4,11 +4,15 @@ import argparse
 import csv
 import os
 import time
+os.environ["MUJOCO_GL"] = "egl"
+os.environ["PYOPENGL_PLATFORM"] = "egl"
 import jax
 from brax import envs
 from brax.training.agents.ppo import train as ppo
 from config import ENV_NAME, PPOConfig
 from rollout import _render_video, _save_data
+import warnings
+warnings.filterwarnings('ignore')
 jax.config.update("jax_default_matmul_precision", "tensorfloat32")
 
 def parse_args() -> argparse.Namespace:
@@ -127,7 +131,7 @@ def main():
 
     # Default noise scale for rollout — adds variability to separate feedback/feedforward R² curves.
     # To disable: set ROLLOUT_NOISE_SCALE = 0.0
-    ROLLOUT_NOISE_SCALE = 0.9
+    ROLLOUT_NOISE_SCALE = 0.0
 
     def scan_step(carry, _):
         state, rng = carry
