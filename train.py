@@ -7,6 +7,9 @@ import time
 os.environ["MUJOCO_GL"] = "egl"
 os.environ["PYOPENGL_PLATFORM"] = "egl"
 import jax
+import warnings
+os.environ["MUJOCO_GL"] = "egl"
+os.environ["PYOPENGL_PLATFORM"] = "egl"
 from brax import envs
 from brax.training.agents.ppo import train as ppo
 from config import ENV_NAME, PPOConfig
