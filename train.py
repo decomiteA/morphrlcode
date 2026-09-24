@@ -139,7 +139,7 @@ def main():
         next_state = jit_step(state, action)
         return (next_state, rng), state.pipeline_state
 
-    master_rng = jax.random.PNRGKey(args.seed)
+    master_rng = jax.random.PRNGKey(args.seed)
     for ii in range(5):
         master_rng, reset_rng, scan_rng = jax.random.split(master_rng,3)
         state        = jit_reset(reset_rng)
@@ -147,7 +147,7 @@ def main():
 
         # Extract data from rollout and get states
         (_, _), pipeline_states = jax.lax.scan(
-            scan_step, (state, rng), None, length=steps
+            scan_step, (state, scan_rng), None, length=steps
         )
 
         # Save the data into csv for processing and using for analysis and visuals
