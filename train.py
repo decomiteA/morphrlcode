@@ -124,9 +124,11 @@ def main():
     # Perform rollout and make video
     steps = cfg.rollout_steps
     print(f"\nRunning {steps}-step rollout ...")
-
+    rng_speed = jax.random.PRNGKey(42)
     for ii in range(5):
-
+        env = envs.get_environment(ENV_NAME)
+        _ = env.reset(rng_speed)
+        rng_speed, _, _ = jax.random.split(rng_speed, 3)
         inference_fn  = make_inference_fn(params)
         jit_inference = jax.jit(inference_fn)
         jit_step      = jax.jit(env.step)
