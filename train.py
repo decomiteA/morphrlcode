@@ -15,6 +15,10 @@ import warnings
 warnings.filterwarnings('ignore')
 jax.config.update("jax_default_matmul_precision", "tensorfloat32")
 
+ROLLOUT_NOISE_SCALE = 0.0
+
+
+
 def parse_args() -> argparse.Namespace:
     cfg = PPOConfig()
     p = argparse.ArgumentParser(description="PPO training on MorphologyEnv")
@@ -116,41 +120,38 @@ def main():
 
     if args.no_rollout:
         return
-    
+
     # Perform rollout and make video
     steps = cfg.rollout_steps
     print(f"\nRunning {steps}-step rollout ...")
 
-    inference_fn  = make_inference_fn(params)
-    jit_inference = jax.jit(inference_fn)
-    jit_step      = jax.jit(env.step)
+    for ii in range(5):
 
-    rng          = jax.random.PRNGKey(args.seed)
-    state        = jax.jit(env.reset)(rng)
-    target_speed = float(state.info['target_speed'])
+        inference_fn  = make_inference_fn(params)
+        jit_inference = jax.jit(inference_fn)
+        jit_step      = jax.jit(env.step)
 
-    # Default noise scale for rollout — adds variability to separate feedback/feedforward R² curves.
-    # To disable: set ROLLOUT_NOISE_SCALE = 0.0
-    ROLLOUT_NOISE_SCALE = 0.0
+        def scan_step(carry, _):
+            state, rng = carry
+            rng, rng_act, rng_noise = jax.random.split(rng, 3)
+            action, _ = jit_inference(state.obs, rng_act)
+            if ROLLOUT_NOISE_SCALE > 0.0:
+                action = action + jax.random.normal(rng_noise, action.shape) * ROLLOUT_NOISE_SCALE
+            next_state = jit_step(state, action)
+            return (next_state, rng), state.pipeline_state
 
-    def scan_step(carry, _):
-        state, rng = carry
-        rng, rng_act, rng_noise = jax.random.split(rng, 3)
-        action, _ = jit_inference(state.obs, rng_act)
-        if ROLLOUT_NOISE_SCALE > 0.0:
-            action = action + jax.random.normal(rng_noise, action.shape) * ROLLOUT_NOISE_SCALE
-        next_state = jit_step(state, action)
-        return (next_state, rng), state.pipeline_state
+        rng          = jax.random.PRNGKey(args.seed)
+        state        = jax.jit(env.reset)(rng)
+        target_speed = float(state.info['target_speed'])
 
+        # Extract data from rollout and get states
+        (_, _), pipeline_states = jax.lax.scan(
+            scan_step, (state, rng), None, length=steps
+        )
 
-    # Extract data from rollout and get states
-    (_, _), pipeline_states = jax.lax.scan(
-        scan_step, (state, rng), None, length=steps
-    )
-
-    # Save the data into csv for processing and using for analysis and visuals
-    _save_data(pipeline_states, env.dt, steps,
-               os.path.join(run_dir, "data.csv"), env.sys, target_speed)
+        # Save the data into csv for processing and using for analysis and visuals
+        _save_data(pipeline_states, env.dt, steps,
+                os.path.join(run_dir, f"data_run{ii}.csv"), env.sys, target_speed)
 
     trajectory = [
         jax.tree_util.tree_map(lambda x, i=i: x[i], pipeline_states)
