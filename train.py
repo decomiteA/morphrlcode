@@ -124,26 +124,25 @@ def main():
     # Perform rollout and make video
     steps = cfg.rollout_steps
     print(f"\nRunning {steps}-step rollout ...")
-    rng_speed = jax.random.PRNGKey(42)
+
+    inference_fn  = make_inference_fn(params)
+    jit_inference = jax.jit(inference_fn)
+    jit_step      = jax.jit(env.step)
+    jit_reset     = jax.jit(env.reset)
+
+    def scan_step(carry, _):
+        state, rng = carry
+        rng, rng_act, rng_noise = jax.random.split(rng, 3)
+        action, _ = jit_inference(state.obs, rng_act)
+        if ROLLOUT_NOISE_SCALE > 0.0:
+            action = action + jax.random.normal(rng_noise, action.shape) * ROLLOUT_NOISE_SCALE
+        next_state = jit_step(state, action)
+        return (next_state, rng), state.pipeline_state
+
+    master_rng = jax.random.PNRGKey(args.seed)
     for ii in range(5):
-        env = envs.get_environment(ENV_NAME)
-        _ = env.reset(rng_speed)
-        rng_speed, _, _ = jax.random.split(rng_speed, 3)
-        inference_fn  = make_inference_fn(params)
-        jit_inference = jax.jit(inference_fn)
-        jit_step      = jax.jit(env.step)
-
-        def scan_step(carry, _):
-            state, rng = carry
-            rng, rng_act, rng_noise = jax.random.split(rng, 3)
-            action, _ = jit_inference(state.obs, rng_act)
-            if ROLLOUT_NOISE_SCALE > 0.0:
-                action = action + jax.random.normal(rng_noise, action.shape) * ROLLOUT_NOISE_SCALE
-            next_state = jit_step(state, action)
-            return (next_state, rng), state.pipeline_state
-
-        rng          = jax.random.PRNGKey(args.seed)
-        state        = jax.jit(env.reset)(rng)
+        master_rng, reset_rng, scan_rng = jax.random.split(master_rng,3)
+        state        = jit_reset(reset_rng)
         target_speed = float(state.info['target_speed'])
 
         # Extract data from rollout and get states
