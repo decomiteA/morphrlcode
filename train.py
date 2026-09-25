@@ -4,6 +4,8 @@ import argparse
 import csv
 import os
 import time
+os.environ["MUJOCO_GL"] = "egl"
+os.environ["PYOPENGL_PLATFORM"] = "egl"
 import jax
 import warnings
 os.environ["MUJOCO_GL"] = "egl"
@@ -12,8 +14,14 @@ from brax import envs
 from brax.training.agents.ppo import train as ppo
 from config import ENV_NAME, PPOConfig
 from rollout import _render_video, _save_data
-jax.config.update("jax_default_matmul_precision", "tensorfloat32")
+import warnings
 warnings.filterwarnings('ignore')
+jax.config.update("jax_default_matmul_precision", "tensorfloat32")
+
+ROLLOUT_NOISE_SCALE = 0.0
+
+
+
 def parse_args() -> argparse.Namespace:
     cfg = PPOConfig()
     p = argparse.ArgumentParser(description="PPO training on MorphologyEnv")
@@ -115,7 +123,7 @@ def main():
 
     if args.no_rollout:
         return
-    
+
     # Perform rollout and make video
     steps = cfg.rollout_steps
     print(f"\nRunning {steps}-step rollout ...")
@@ -123,14 +131,7 @@ def main():
     inference_fn  = make_inference_fn(params)
     jit_inference = jax.jit(inference_fn)
     jit_step      = jax.jit(env.step)
-
-    rng          = jax.random.PRNGKey(args.seed)
-    state        = jax.jit(env.reset)(rng)
-    target_speed = float(state.info['target_speed'])
-
-    # Default noise scale for rollout — adds variability to separate feedback/feedforward R² curves.
-    # To disable: set ROLLOUT_NOISE_SCALE = 0.0
-    ROLLOUT_NOISE_SCALE = 0.9
+    jit_reset     = jax.jit(env.reset)
 
     def scan_step(carry, _):
         state, rng = carry
@@ -141,15 +142,20 @@ def main():
         next_state = jit_step(state, action)
         return (next_state, rng), state.pipeline_state
 
+    master_rng = jax.random.PNRGKey(args.seed)
+    for ii in range(5):
+        master_rng, reset_rng, scan_rng = jax.random.split(master_rng,3)
+        state        = jit_reset(reset_rng)
+        target_speed = float(state.info['target_speed'])
 
-    # Extract data from rollout and get states
-    (_, _), pipeline_states = jax.lax.scan(
-        scan_step, (state, rng), None, length=steps
-    )
+        # Extract data from rollout and get states
+        (_, _), pipeline_states = jax.lax.scan(
+            scan_step, (state, rng), None, length=steps
+        )
 
-    # Save the data into csv for processing and using for analysis and visuals
-    _save_data(pipeline_states, env.dt, steps,
-               os.path.join(run_dir, "data.csv"), env.sys, target_speed)
+        # Save the data into csv for processing and using for analysis and visuals
+        _save_data(pipeline_states, env.dt, steps,
+                os.path.join(run_dir, f"data_run{ii}.csv"), env.sys, target_speed)
 
     trajectory = [
         jax.tree_util.tree_map(lambda x, i=i: x[i], pipeline_states)
