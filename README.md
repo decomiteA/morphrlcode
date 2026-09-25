@@ -26,11 +26,14 @@ The issue has actually be fixed. There was a randomly large number set as defaul
 # Todos 
 
 Update the environment to allow for different type of velocity mode
-- [ ] We want a way to manually select the speed for the evaluation rollouts
+- [x] We want a way to manually select the speed for the evaluation rollouts
 
 Add the following features to the analysis pipeline 
 - [ ] Proper contact detection (both location and timing)
-- [ ] Speed step length and duration analysis
+- [x] Speed step length and duration analysis
 - [ ] Characterization of the gait patterns
-- [ ] Generate rollouts at different speeds 
+- [x] Generate rollouts at different speeds 
 - [ ] Update the foot placement control code
+
+Test with another body, the speed step duration might come for free
+- [ ] Write humanoid environement
