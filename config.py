@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 ENV_NAME = "custom_ant"
 
+ENV_NAME_HUMAN = "custom_human"
 
 @dataclass
 class PPOConfig:
@@ -23,7 +24,7 @@ class PPOConfig:
     seed: int = 0
 
     runs_dir: str = "runs"
-    rollout_steps: int = 1500
+    rollout_steps: int = 1_000
 
     speed_min: float = 1.0    # change range for greater variation in speed, but may require more training time
     speed_max: float = 2.0

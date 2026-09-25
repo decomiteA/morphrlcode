@@ -17,20 +17,15 @@ To run the training code (which is what is being worked on right now) with the d
 python train.py <run_name>
 ```
 
-## Notes 
-I am trying to land on the reward function that would be generating gaits for many different behavior. The question mark is mostly at the level of the velocity term, there is a tracking term along the foreaft direction and, initially, nothing in the lateral direction which means that the agent was free to move laterally. One might have to move to positive rewards, using the gaussian transformation.
-
-The issue has actually be fixed. There was a randomly large number set as default in the motor noise term for the behavioral rollouts.
-
 
 # Todos 
 
 Update the environment to allow for different type of velocity mode
-- [ ] We want a way to manually select the speed for the evaluation rollouts
+- [x] We want a way to manually select the speed for the evaluation rollouts
 
 Add the following features to the analysis pipeline 
 - [ ] Proper contact detection (both location and timing)
 - [ ] Speed step length and duration analysis
 - [ ] Characterization of the gait patterns
-- [ ] Generate rollouts at different speeds 
+- [x] Generate rollouts at different speeds 
 - [ ] Update the foot placement control code
