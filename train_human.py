@@ -6,16 +6,11 @@ import os
 import time
 os.environ["MUJOCO_GL"] = "egl"
 os.environ["PYOPENGL_PLATFORM"] = "egl"
-os.environ["XLA_PYTHON_CLIENT_MEM_FRACTION"] = "0.7"
-os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "False" 
 import jax
-import warnings
-os.environ["MUJOCO_GL"] = "egl"
-os.environ["PYOPENGL_PLATFORM"] = "egl"
 from brax import envs
 from brax.training.agents.ppo import train as ppo
-from config import ENV_NAME, PPOConfig
-from rollout import _render_video, _save_data, _save_data_6
+from config import ENV_NAME_HUMAN, PPOConfig
+from rollout import _render_video, _save_data
 import warnings
 warnings.filterwarnings('ignore')
 jax.config.update("jax_default_matmul_precision", "tensorfloat32")
@@ -38,8 +33,7 @@ def parse_args() -> argparse.Namespace:
 def main():
     args = parse_args()
     cfg = PPOConfig()
-    print(ENV_NAME)
-    env = envs.get_environment(ENV_NAME)
+    env = envs.get_environment(ENV_NAME_HUMAN)
 
     print(f"Observation size : {env.observation_size}")
     print(f"Action size      : {env.action_size}")
@@ -146,7 +140,7 @@ def main():
         return (next_state, rng), state.pipeline_state
 
     master_rng = jax.random.PRNGKey(args.seed)
-    for ii in range(100):
+    for ii in range(1):
         master_rng, reset_rng, scan_rng = jax.random.split(master_rng,3)
         state        = jit_reset(reset_rng)
         target_speed = float(state.info['target_speed'])
@@ -160,15 +154,15 @@ def main():
         _save_data(pipeline_states, env.dt, steps,
                 os.path.join(run_dir, f"data_run{ii}.csv"), env.sys, target_speed)
 
-        trajectory = [
-            jax.tree_util.tree_map(lambda x, i=i: x[i], pipeline_states)
-            for i in range(steps)
-        ]
+    trajectory = [
+        jax.tree_util.tree_map(lambda x, i=i: x[i], pipeline_states)
+        for i in range(steps)
+    ]
 
-        video_path = os.path.join(run_dir, f"rollout_run{ii}_targetspeed_{target_speed}.mp4")
-        print(f"Rendering to {video_path} ...")
-        _render_video(trajectory, env.dt, video_path)
-        print(f"Saved: {video_path}")
+    video_path = os.path.join(run_dir, "rollout.mp4")
+    print(f"Rendering to {video_path} ...")
+    _render_video(trajectory, env.dt, video_path)
+    print(f"Saved: {video_path}")
 
 
 if __name__ == "__main__":
