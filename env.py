@@ -33,7 +33,7 @@ class MorphologyEnv(PipelineEnv):
         self,
         xml_file: str = DEFAULT_XML,
         xml_string: str | None = None,
-        ctrl_cost_weight: float = 0.2,
+        ctrl_cost_weight: float = 0.1,
         healthy_reward: float = 1.0,
         terminate_when_unhealthy: bool = True,
         healthy_z_range: tuple[float, float] = (0.2, 1.0),
@@ -114,11 +114,12 @@ class MorphologyEnv(PipelineEnv):
 
         velocity = (pipeline_state.x.pos[0] - pipeline_state0.x.pos[0]) / self.dt
         speed_error = velocity[0] - target_speed
-        speed_reward = -jp.square(speed_error) + 0.3 * velocity[0]
+        #speed_reward = -jp.square(speed_error) + 0.3 * velocity[0] # Do we need that later term ? 
+        speed_reward = -jp.square(speed_error)
 
         # penalize y drift
-        straight_reward = -jp.square(velocity[1]) # not added in final reward, but useful for experimenting
-
+        straight_reward = 0 * -jp.square(velocity[1]) # not added in final reward, but useful for experimenting
+        
         min_z, max_z = self._healthy_z_range
         is_healthy = jp.where(pipeline_state.x.pos[0, 2] < min_z, 0.0, 1.0)
         is_healthy = jp.where(pipeline_state.x.pos[0, 2] > max_z, 0.0, is_healthy)
@@ -130,7 +131,7 @@ class MorphologyEnv(PipelineEnv):
 
 
         obs = self._get_obs(pipeline_state, target_speed)
-        reward = speed_reward + healthy_reward - ctrl_cost  # + straight_reward 
+        reward = speed_reward + straight_reward + healthy_reward - ctrl_cost  # + straight_reward 
         done = 1.0 - is_healthy if self._terminate_when_unhealthy else 0.0
         state.metrics.update(
             reward_speed=speed_reward,

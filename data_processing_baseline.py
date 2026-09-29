@@ -10,20 +10,18 @@ from utils_analysis import *
 import matplotlib.pyplot as plt 
 
 
-n_seeds, n_runs = 4, 20
-dt = 0.05   
+n_seeds, n_runs = 8, 20
 input_path = os.path.join(os.getcwd(),'runs')
 for seed in range(n_seeds):
-    local_output_path = os.path.join(input_path,f'wide_range_baseline_{seed+1}','results')
+    local_output_path = os.path.join(input_path,f'baseline_seed{1}','results')
     os.makedirs(local_output_path, exist_ok=True)
     list_target, list_true = [], []
     list_duration_1, list_duration_2, list_duration_3, list_duration_4 = [], [], [], []
     list_distance_1, list_distance_2, list_distance_3, list_distance_4 = [], [], [], []
     list_corr2, list_corr3 ,list_corr4 = [], [], []
     list_input_body, list_input_self, list_output = [], [], []
-    total_metrics, total_phase = np.zeros((1,8)), np.zeros((1,7))
     for run in range(n_runs):
-        local_data = pd.read_csv(os.path.join(input_path,f'wide_range_baseline_{seed+1}',f'data_run{run}.csv'))
+        local_data = pd.read_csv(os.path.join(input_path,f'baseline_seed{1}',f'data_run{run}.csv'))
         input_data = reshape_data(local_data)
         input_data = compute_velocity_markers(input_data)
         foot_contact_matrix = get_foot_contact(input_data)
@@ -145,5 +143,6 @@ for seed in range(n_seeds):
     fig.savefig(os.path.join(local_output_path,'figure_speed_length.png'),bbox_inches='tight')
     fig.savefig(os.path.join(local_output_path,'figure_speed_length.svg'),bbox_inches='tight')
     
+
 
 

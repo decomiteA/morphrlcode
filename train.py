@@ -9,6 +9,9 @@ os.environ["PYOPENGL_PLATFORM"] = "egl"
 os.environ["XLA_PYTHON_CLIENT_MEM_FRACTION"] = "0.7"
 os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "False" 
 import jax
+import warnings
+os.environ["MUJOCO_GL"] = "egl"
+os.environ["PYOPENGL_PLATFORM"] = "egl"
 from brax import envs
 from brax.training.agents.ppo import train as ppo
 from config import ENV_NAME, PPOConfig

@@ -25,7 +25,10 @@ Update the environment to allow for different type of velocity mode
 
 Add the following features to the analysis pipeline 
 - [ ] Proper contact detection (both location and timing)
-- [ ] Speed step length and duration analysis
+- [x] Speed step length and duration analysis
 - [ ] Characterization of the gait patterns
 - [x] Generate rollouts at different speeds 
 - [ ] Update the foot placement control code
+
+Test with another body, the speed step duration might come for free
+- [ ] Write humanoid environement
