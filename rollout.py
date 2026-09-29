@@ -17,7 +17,7 @@ from brax.training.agents.ppo import checkpoint as ppo_checkpoint
 from brax.training.agents.ppo import networks as ppo_networks
 from brax.training.acme import running_statistics
 from config import ENV_NAME, PPOConfig
-from env import DEFAULT_XML
+from env import DEFAULT_XML, HUMAN_XML
 
 
 def _render_video(trajectory, dt, output_path, width=640, height=480,
@@ -108,6 +108,81 @@ def _save_data(pipeline_states, dt, steps, output_path, sys, target_speed=None):
         "hip_2_vel": qd[:, 8],  "ankle_2_vel": qd[:, 9],
         "hip_3_vel": qd[:, 10], "ankle_3_vel": qd[:, 11],
         "hip_4_vel": qd[:, 12], "ankle_4_vel": qd[:, 13],
+        # Torso world position (from Brax x.pos)
+        "torso_body_x": pos[:, torso_idx, 0],
+        "torso_body_y": pos[:, torso_idx, 1],
+        "torso_body_z": pos[:, torso_idx, 2],
+        # Target speed (constant for this rollout)
+        "target_speed": np.full(steps, target_speed if target_speed is not None else np.nan),
+    }
+
+    contact_threshold = 0.10  # foot sphere radius is 0.08m, center at ~0.08m during stance
+    for name, fp in foot_pos.items():
+        data[f"{name}_x"] = fp[:, 0]
+        data[f"{name}_y"] = fp[:, 1]
+        data[f"{name}_z"] = fp[:, 2]
+        data[f"{name}_contact"] = (fp[:, 2] < contact_threshold).astype(float)
+        data[f"{name}_vx"] = np.gradient(fp[:, 0], float(dt))
+        data[f"{name}_vy"] = np.gradient(fp[:, 1], float(dt))
+        data[f"{name}_vz"] = np.gradient(fp[:, 2], float(dt))
+
+    df = pd.DataFrame(data)
+    df.to_csv(output_path, index=False)
+    print(f"Saved: {output_path}  ({len(df)} rows, {len(df.columns)} columns)")
+
+def _save_data_6(pipeline_states, dt, steps, output_path, sys, target_speed=None):
+    link_names = list(sys.link_names)
+    torso_idx  = link_names.index("torso")
+
+    mj_model = mujoco.MjModel.from_xml_path(DEFAULT_XML)
+
+    def _site_id(name):
+        return mujoco.mj_name2id(mj_model, mujoco.mjtObj.mjOBJ_SITE, name)
+
+    foot_site_ids = {
+        "foot_1": _site_id("foot_site_1"),
+        "foot_2": _site_id("foot_site_2"),
+        "foot_3": _site_id("foot_site_3"),
+        "foot_4": _site_id("foot_site_4"),
+        "foot_5": _site_id("foot_site_5"),
+        "foot_6": _site_id("foot_site_6"),
+    }
+
+    q        = np.asarray(pipeline_states.q)           # (steps, nq)
+    qd       = np.asarray(pipeline_states.qd)          # (steps, nv)
+    pos      = np.asarray(pipeline_states.x.pos)       # (steps, nlinks, 3)
+    site_pos = np.asarray(pipeline_states.site_xpos)   # (steps, nsites, 3)
+
+    foot_pos = {
+        name: site_pos[:, sid, :]
+        for name, sid in foot_site_ids.items()
+    }
+
+    t = np.arange(steps) * float(dt)
+
+    data = {
+        "t": t,
+        # Torso pose (from free joint)
+        "torso_x":  q[:, 0], "torso_y":  q[:, 1], "torso_z":  q[:, 2],
+        "torso_qw": q[:, 3], "torso_qx": q[:, 4],
+        "torso_qy": q[:, 5], "torso_qz": q[:, 6],
+        # Joint angles
+        "hip_1": q[:, 7],  "ankle_1": q[:, 8],
+        "hip_2": q[:, 9],  "ankle_2": q[:, 10],
+        "hip_3": q[:, 11], "ankle_3": q[:, 12],
+        "hip_4": q[:, 13], "ankle_4": q[:, 14],
+        "hip_5": q[:, 15], "ankle_5": q[:, 16],
+        "hip_6": q[:, 17], "ankle_6": q[:, 18],
+        # Torso velocities (from free joint qvel)
+        "torso_vel_x": qd[:, 0], "torso_vel_y": qd[:, 1], "torso_vel_z": qd[:, 2],
+        "torso_ang_x": qd[:, 3], "torso_ang_y": qd[:, 4], "torso_ang_z": qd[:, 5],
+        # Joint velocities
+        "hip_1_vel": qd[:, 6],  "ankle_1_vel": qd[:, 7],
+        "hip_2_vel": qd[:, 8],  "ankle_2_vel": qd[:, 9],
+        "hip_3_vel": qd[:, 10], "ankle_3_vel": qd[:, 11],
+        "hip_4_vel": qd[:, 12], "ankle_4_vel": qd[:, 13],
+        "hip_5_vel": qd[:, 14], "ankle_5_vel": qd[:, 15],
+        "hip_6_vel": qd[:, 16], "ankle_6_vel": qd[:, 17],
         # Torso world position (from Brax x.pos)
         "torso_body_x": pos[:, torso_idx, 0],
         "torso_body_y": pos[:, torso_idx, 1],

@@ -33,7 +33,7 @@ class MorphologyEnv(PipelineEnv):
         self,
         xml_file: str = DEFAULT_XML,
         xml_string: str | None = None,
-        ctrl_cost_weight: float = 0.0,
+        ctrl_cost_weight: float = 0.2,
         healthy_reward: float = 1.0,
         terminate_when_unhealthy: bool = True,
         healthy_z_range: tuple[float, float] = (0.2, 1.0),

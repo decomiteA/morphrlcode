@@ -26,5 +26,5 @@ class PPOConfig:
     runs_dir: str = "runs"
     rollout_steps: int = 1_000
 
-    speed_min: float = 1.0    # change range for greater variation in speed, but may require more training time
+    speed_min: float = 0.3    # change range for greater variation in speed, but may require more training time
     speed_max: float = 2.0
