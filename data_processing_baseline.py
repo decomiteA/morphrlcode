@@ -3,25 +3,28 @@ import numpy as np
 from scipy.fft import fft, fftfreq, fftshift
 import scipy.signal
 import pickle
+import scipy.signal
 import pandas as pd 
 import scipy as sp
 from tqdm import tqdm
 from utils_analysis import *
 import matplotlib.pyplot as plt 
 
-
-n_seeds, n_runs = 8, 20
+dt = 0.01
+n_seeds, n_runs = 2, 200
 input_path = os.path.join(os.getcwd(),'runs')
-for seed in range(n_seeds):
-    local_output_path = os.path.join(input_path,f'baseline_seed{1}','results')
+for seed in range(1,n_seeds):
+    local_output_path = os.path.join(input_path,f'baseline_highfreq_largerange_{seed+1}','results')
     os.makedirs(local_output_path, exist_ok=True)
     list_target, list_true = [], []
     list_duration_1, list_duration_2, list_duration_3, list_duration_4 = [], [], [], []
     list_distance_1, list_distance_2, list_distance_3, list_distance_4 = [], [], [], []
     list_corr2, list_corr3 ,list_corr4 = [], [], []
+    total_metrics = np.zeros((1,8))
+    total_phase = np.zeros((1,7))
     list_input_body, list_input_self, list_output = [], [], []
     for run in range(n_runs):
-        local_data = pd.read_csv(os.path.join(input_path,f'baseline_seed{1}',f'data_run{run}.csv'))
+        local_data = pd.read_csv(os.path.join(input_path,f'baseline_highfreq_largerange_{seed+1}',f'data_run{run}.csv'))
         input_data = reshape_data(local_data)
         input_data = compute_velocity_markers(input_data)
         foot_contact_matrix = get_foot_contact(input_data)
@@ -76,10 +79,16 @@ for seed in range(n_seeds):
         diff_leg2 = diff_leg2 - np.nanmean(diff_leg2)
         diff_leg3 = diff_leg3 - np.nanmean(diff_leg3)
         diff_leg4 = diff_leg4 - np.nanmean(diff_leg4)
-        p_1, _ = scipy.signal.find_peaks(diff_leg1, distance=10)
-        p_2, _ = scipy.signal.find_peaks(diff_leg2, distance=10)
-        p_3, _ = scipy.signal.find_peaks(diff_leg3, distance=10)
-        p_4, _ = scipy.signal.find_peaks(diff_leg4, distance=10)
+        b,a = signal.butter(6,0.5,'low')
+        diff_leg1 = signal.filtfilt(b,a,diff_leg1)
+        diff_leg2 = signal.filtfilt(b,a,diff_leg2)
+        diff_leg3 = signal.filtfilt(b,a,diff_leg3)
+        diff_leg4 = signal.filtfilt(b,a,diff_leg4)
+        p_1, _ = scipy.signal.find_peaks(diff_leg1, distance=50)
+        p_2, _ = scipy.signal.find_peaks(diff_leg2, distance=50)
+        p_3, _ = scipy.signal.find_peaks(diff_leg3, distance=50)
+        p_4, _ = scipy.signal.find_peaks(diff_leg4, distance=50)
+
         list_duration_1.append(np.nanmean(np.diff(p_1)))
         list_duration_2.append(np.nanmean(np.diff(p_2)))
         list_duration_3.append(np.nanmean(np.diff(p_3)))
@@ -108,6 +117,17 @@ for seed in range(n_seeds):
     # Saving the data once and for all
     np.save(os.path.join(local_output_path,'total_metrics.npy'), total_metrics)
     np.save(os.path.join(local_output_path,'phase_metrics.npy'), total_phase)
+
+    fig, axs = plt.subplots(1,1,figsize=(3,3))
+    axs.spines[['top','right']].set_visible(False)
+    axs.scatter(list_target, list_corr2, color='r', s=5)
+    axs.scatter(list_target, list_corr3, color='g', s=5)
+    axs.scatter(list_target, list_corr4, color='b', s=5)
+    axs.set_xlabel('target speed'), axs.set_ylabel('relative gait fraction')
+    plt.tight_layout()
+    fig.savefig(os.path.join(local_output_path,'figure_corr.png'),bbox_inches='tight')
+    fig.savefig(os.path.join(local_output_path,'figure_corr.svg'),bbox_inches='tight')
+
 
     fig, axs = plt.subplots(1,1,figsize=(3,3))
     axs.spines[['top','right']].set_visible(False)

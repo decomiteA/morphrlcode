@@ -19,7 +19,7 @@ _cfg = PPOConfig()
 
 # ── Default XML file path ─────────────────────────────────────────────────────
 _DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_XML = os.path.join(_DIR, "morphologies/baseline.xml")  #change here when doing new training, or rollout!
+DEFAULT_XML = os.path.join(_DIR, "morphologies/baseline_highdensity.xml")  #change here when doing new training, or rollout!
 HUMAN_XML = os.path.join(_DIR, "morphologies/human.xml")
 
 class MorphologyEnv(PipelineEnv):
@@ -33,7 +33,7 @@ class MorphologyEnv(PipelineEnv):
         self,
         xml_file: str = DEFAULT_XML,
         xml_string: str | None = None,
-        ctrl_cost_weight: float = 0.1,
+        ctrl_cost_weight: float = 0.01,
         healthy_reward: float = 1.0,
         terminate_when_unhealthy: bool = True,
         healthy_z_range: tuple[float, float] = (0.2, 1.0),
@@ -54,7 +54,7 @@ class MorphologyEnv(PipelineEnv):
             'opt.ls_iterations': 4,
         })
 
-        kwargs['n_frames'] = kwargs.get('n_frames', 5)
+        kwargs['n_frames'] = kwargs.get('n_frames', 1)
         super().__init__(sys=sys, backend='mjx', **kwargs)
 
         self._ctrl_cost_weight = ctrl_cost_weight
