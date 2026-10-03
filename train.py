@@ -10,12 +10,10 @@ os.environ["XLA_PYTHON_CLIENT_MEM_FRACTION"] = "0.7"
 os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "False" 
 import jax
 import warnings
-os.environ["MUJOCO_GL"] = "egl"
-os.environ["PYOPENGL_PLATFORM"] = "egl"
 from brax import envs
 from brax.training.agents.ppo import train as ppo
 from config import ENV_NAME, PPOConfig
-from rollout import _render_video, _save_data, _save_data_6
+from rollout import _render_video, _save_data, _save_data_6, save_data_with_actions
 import warnings
 warnings.filterwarnings('ignore')
 jax.config.update("jax_default_matmul_precision", "tensorfloat32")
@@ -143,32 +141,32 @@ def main():
         if ROLLOUT_NOISE_SCALE > 0.0:
             action = action + jax.random.normal(rng_noise, action.shape) * ROLLOUT_NOISE_SCALE
         next_state = jit_step(state, action)
-        return (next_state, rng), state.pipeline_state
+        return (next_state, rng), (state.pipeline_state, action)
 
     master_rng = jax.random.PRNGKey(args.seed)
-    for ii in range(100):
+    for ii in range(200):
         master_rng, reset_rng, scan_rng = jax.random.split(master_rng,3)
         state        = jit_reset(reset_rng)
         target_speed = float(state.info['target_speed'])
 
         # Extract data from rollout and get states
-        (_, _), pipeline_states = jax.lax.scan(
+        (_, _), (pipeline_states, actions) = jax.lax.scan(
             scan_step, (state, scan_rng), None, length=steps
         )
 
         # Save the data into csv for processing and using for analysis and visuals
-        _save_data(pipeline_states, env.dt, steps,
+        save_data_with_actions(pipeline_states, actions, env.dt, steps,
                 os.path.join(run_dir, f"data_run{ii}.csv"), env.sys, target_speed)
 
-        trajectory = [
-            jax.tree_util.tree_map(lambda x, i=i: x[i], pipeline_states)
-            for i in range(steps)
-        ]
+    trajectory = [
+        jax.tree_util.tree_map(lambda x, i=i: x[i], pipeline_states)
+        for i in range(steps)
+    ]
 
-        video_path = os.path.join(run_dir, f"rollout_run{ii}_targetspeed_{target_speed}.mp4")
-        print(f"Rendering to {video_path} ...")
-        _render_video(trajectory, env.dt, video_path)
-        print(f"Saved: {video_path}")
+    video_path = os.path.join(run_dir, f"rollout.mp4")
+    print(f"Rendering to {video_path} ...")
+    _render_video(trajectory, env.dt, video_path)
+    print(f"Saved: {video_path}")
 
 
 if __name__ == "__main__":
