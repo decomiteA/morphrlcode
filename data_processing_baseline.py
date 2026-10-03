@@ -11,9 +11,9 @@ from utils_analysis import *
 import matplotlib.pyplot as plt 
 
 dt = 0.01
-n_seeds, n_runs = 2, 200
+n_seeds, n_runs = 3, 200
 input_path = os.path.join(os.getcwd(),'runs')
-for seed in range(1,n_seeds):
+for seed in range(n_seeds):
     local_output_path = os.path.join(input_path,f'baseline_highfreq_largerange_{seed+1}','results')
     os.makedirs(local_output_path, exist_ok=True)
     list_target, list_true = [], []
@@ -22,6 +22,7 @@ for seed in range(1,n_seeds):
     list_corr2, list_corr3 ,list_corr4 = [], [], []
     total_metrics = np.zeros((1,8))
     total_phase = np.zeros((1,7))
+    total_hildebrand = np.zeros((1,4,11))
     list_input_body, list_input_self, list_output = [], [], []
     for run in range(n_runs):
         local_data = pd.read_csv(os.path.join(input_path,f'baseline_highfreq_largerange_{seed+1}',f'data_run{run}.csv'))
@@ -32,6 +33,11 @@ for seed in range(1,n_seeds):
         # Getting the foot contact metrics 
         matrix_metrics = extract_metrics(input_data, foot_contact_matrix, run)
         total_metrics = np.concatenate((total_metrics, matrix_metrics), axis=0)
+
+
+        hildebrand_matrix = get_hildebrand_data(foot_contact_matrix,matrix_metrics)
+        local_hildebrand = np.nanmean(hildebrand_matrix, axis=0)
+        total_hildebrand = np.concatenate((total_hildebrand, np.expand_dims(local_hildebrand,axis=0)),axis=0)
         # For the summary statistics (high level)
     
         phasor_metrics_leg_0 = extract_phasor_metrics(input_data, foot_contact_matrix, run, leg_id=0)
@@ -117,6 +123,7 @@ for seed in range(1,n_seeds):
     # Saving the data once and for all
     np.save(os.path.join(local_output_path,'total_metrics.npy'), total_metrics)
     np.save(os.path.join(local_output_path,'phase_metrics.npy'), total_phase)
+    np.save(os.path.join(local_output_path,'hildebrand_data.npy'), total_hildebrand[1:,:,:])
 
     fig, axs = plt.subplots(1,1,figsize=(3,3))
     axs.spines[['top','right']].set_visible(False)
