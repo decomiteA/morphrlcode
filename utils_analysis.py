@@ -22,7 +22,7 @@ def reshape_data(input_data):
 
     return output_data
 
-def compute_velocity_markers(input_data, framerate=20):
+def compute_velocity_markers(input_data, framerate=100):
     """
     Computes the velocity of the markers contained in the input_data
     """
@@ -48,21 +48,21 @@ def get_foot_contact(input_data):
     diff_leg3 = local_data[0,3,:] - local_data[0,0,:]
     diff_leg4 = local_data[0,4,:] - local_data[0,0,:]
 
-    b,a = signal.butter(6,0.3,'low')
+    b,a = signal.butter(6,0.5,'low')
     diff_leg1 = signal.filtfilt(b,a,diff_leg1)
     diff_leg2 = signal.filtfilt(b,a,diff_leg2)
     diff_leg3 = signal.filtfilt(b,a,diff_leg3)
     diff_leg4 = signal.filtfilt(b,a,diff_leg4)
 
-    max_leg1, _ = signal.find_peaks(diff_leg1, distance=5)
-    max_leg2, _ = signal.find_peaks(diff_leg2, distance=5)
-    max_leg3, _ = signal.find_peaks(diff_leg3, distance=5)
-    max_leg4, _ = signal.find_peaks(diff_leg4, distance=5)
+    max_leg1, _ = signal.find_peaks(diff_leg1, distance=50)
+    max_leg2, _ = signal.find_peaks(diff_leg2, distance=50)
+    max_leg3, _ = signal.find_peaks(diff_leg3, distance=50)
+    max_leg4, _ = signal.find_peaks(diff_leg4, distance=50)
 
-    min_leg1, _ = signal.find_peaks(-diff_leg1, distance=5)
-    min_leg2, _ = signal.find_peaks(-diff_leg2, distance=5)
-    min_leg3, _ = signal.find_peaks(-diff_leg3, distance=5)
-    min_leg4, _ = signal.find_peaks(-diff_leg4, distance=5)
+    min_leg1, _ = signal.find_peaks(-diff_leg1, distance=50)
+    min_leg2, _ = signal.find_peaks(-diff_leg2, distance=50)
+    min_leg3, _ = signal.find_peaks(-diff_leg3, distance=50)
+    min_leg4, _ = signal.find_peaks(-diff_leg4, distance=50)
 
     bool_contact = np.zeros((len(diff_leg1), 4))
     for leg in range(4):
@@ -106,7 +106,7 @@ def foot_contact_detection(input_data):
 
     return foot_contact_matrix
 
-def extract_metrics(input_raw, input_foot, input_video, framerate=20):
+def extract_metrics(input_raw, input_foot, input_video, framerate=100):
     # This has to be updated for the data we are working with here ...
     """
     Extracts the metrics for the simulated locomotion data
@@ -212,7 +212,7 @@ def extract_metrics(input_raw, input_foot, input_video, framerate=20):
     return output_matrix[1:,:]
 
 
-def extract_phasor_metrics(input_raw, input_foot, input_video, framerate=20, leg_id=0):
+def extract_phasor_metrics(input_raw, input_foot, input_video, framerate=100, leg_id=0):
     """
     Extracts the relative contact timing information
     """
@@ -427,3 +427,27 @@ def get_rsquare_matrix_self(tot_animal, tot_input_self, tot_output_self, bool_hi
                 rsquare_diagonal[animal,time] = multilinear_ols_rsquare(design_mat_y, local_output)
     
     return rsquare_diagonal
+
+def get_hildebrand_data(tot_foot_contact_data, tot_metrics):
+    """
+    Represents the hildebrand data from the contact information and the 
+    """
+    interpolation_x = np.linspace(0,1,11)
+    hildebrand_matrix = np.zeros((1,4, len(interpolation_x)))
+    idx_same = np.where((tot_metrics[:,1]==0) & (tot_metrics[:,2]==0))[0] # We grab the cycles we are interested in.
+    # For each of those, we compute grab the corresponding contact matrix ... 
+    for cycle in range(len(idx_same)):
+        idx_begin = tot_metrics[idx_same[cycle],-1].astype(int)
+        idx_next_contact = np.where((tot_foot_contact_data[0,0,idx_begin+1:]-tot_foot_contact_data[0,0,idx_begin:-1])>0)[0]
+        if len(idx_next_contact)==0:
+            continue
+        # print(tot_foot_contact_data[0,:,idx_begin:idx_begin+idx_next_contact[0]])
+        local_data = (tot_foot_contact_data[0,:,idx_begin:idx_begin+idx_next_contact[0]]!=0).astype(int)
+        # Interpolation 
+        local_interp = np.zeros((4,len(interpolation_x)))
+        for foot in range(4):
+            local_interp[foot,:] = np.interp(interpolation_x, np.linspace(0,1,local_data.shape[-1]),local_data[foot,:])
+        hildebrand_matrix = np.concatenate((hildebrand_matrix, np.expand_dims(local_interp,axis=0)),axis=0)
+
+
+    return hildebrand_matrix[1:,:,:]
