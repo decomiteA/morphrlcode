@@ -21,7 +21,6 @@ jax.config.update("jax_default_matmul_precision", "tensorfloat32")
 ROLLOUT_NOISE_SCALE = 0.0
 
 
-
 def parse_args() -> argparse.Namespace:
     cfg = PPOConfig()
     p = argparse.ArgumentParser(description="PPO training on MorphologyEnv")
@@ -144,7 +143,7 @@ def main():
         return (next_state, rng), (state.pipeline_state, action)
 
     master_rng = jax.random.PRNGKey(args.seed)
-    for ii in range(200):
+    for ii in range(cfg.n_samples):
         master_rng, reset_rng, scan_rng = jax.random.split(master_rng,3)
         state        = jit_reset(reset_rng)
         target_speed = float(state.info['target_speed'])
