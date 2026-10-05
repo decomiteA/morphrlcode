@@ -14,7 +14,7 @@ dt = 0.01
 n_seeds, n_runs = 8, 50
 input_path = os.path.join(os.getcwd(),'runs')
 for seed in range(n_seeds):
-    local_output_path = os.path.join(input_path,f'baseline_lowrange_seed_{seed+1}','results')
+    local_output_path = os.path.join(input_path,f'baseline_lowrange_nrg_seed_{seed+1}','results')
     os.makedirs(local_output_path, exist_ok=True)
     list_target, list_true = [], []
     list_duration_1, list_duration_2, list_duration_3, list_duration_4 = [], [], [], []
@@ -25,7 +25,7 @@ for seed in range(n_seeds):
     total_hildebrand = np.zeros((1,4,11))
     list_input_body, list_input_self, list_output = [], [], []
     for run in range(n_runs):
-        local_data = pd.read_csv(os.path.join(input_path,f'baseline_lowrange_seed_{seed+1}',f'data_run{run}.csv'))
+        local_data = pd.read_csv(os.path.join(input_path,f'baseline_lowrange_nrg_seed_{seed+1}',f'data_run{run}.csv'))
         # print(local_data.keys())
         # fig, axs = plt.subplots(1,1,figsize=(20,5))
         # axs.spines[['top','right']].set_visible(False)

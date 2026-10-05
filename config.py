@@ -28,4 +28,4 @@ class PPOConfig:
     n_samples: int = 50
 
     speed_min: float = 0.5    # change range for greater variation in speed, but may require more training time
-    speed_max: float = 2.0
+    speed_max: float = 2
