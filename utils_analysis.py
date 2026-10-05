@@ -471,13 +471,11 @@ def get_io_time_model_cycle_front(input_foot, input_raw, line, output_metrics):
     Percentage of time with 0, 1, 2 diag, 2 non diag, 3 and 4 legs on the floor
     """
     idx_meta = line[-1].astype(int)
-    idx_next_nan = np.where(np.isnan(input_foot[0,0,idx_meta:]))[0]
-    idx_prev_nan = np.where(np.isnan(np.flip(np.squeeze(input_foot[0,0,:idx_meta]))))[0]
-    idx_next_fc0 =  np.where((np.abs(input_foot[0,0,idx_meta+1:idx_meta+idx_next_nan[0]]) - np.abs(input_foot[0,0,idx_meta:idx_meta+idx_next_nan[0]-1]))>0)[0] # detecting the next foot contact of leg 0
-    idx_next_fc1 =  np.where((np.abs(input_foot[0,1,idx_meta+1:idx_meta+idx_next_nan[0]]) - np.abs(input_foot[0,1,idx_meta:idx_meta+idx_next_nan[0]-1]))>0)[0] # detecting the next foot contact of leg 1
-    idx_prev_fc0 = np.where((np.flip(np.abs(input_foot[0,0,idx_meta-idx_prev_nan[0]:idx_meta-1])) - np.flip(np.abs(input_foot[0,0,idx_meta+1-idx_prev_nan[0]:idx_meta])))<0)[0] # detecting the previous contact of leg 0
-    idx_prev_fc1 = np.where((np.flip(np.abs(input_foot[0,1,idx_meta-idx_prev_nan[0]:idx_meta-1])) - np.flip(np.abs(input_foot[0,1,idx_meta+1-idx_prev_nan[0]:idx_meta])))<0)[0] # detecting the previous contact of leg 1
-    idx_next_to0 = np.where((np.abs(input_foot[0,0,idx_meta+1:idx_meta+idx_next_nan[0]]) - np.abs(input_foot[0,0,idx_meta:idx_meta+idx_next_nan[0]-1]))<0)[0] # detecting the next toe-off of leg 0
+    idx_next_fc0 =  np.where((np.abs(input_foot[0,0,idx_meta+1:]) - np.abs(input_foot[0,0,idx_meta:-1]))>0)[0] # detecting the next foot contact of leg 0
+    idx_next_fc1 =  np.where((np.abs(input_foot[0,1,idx_meta+1:]) - np.abs(input_foot[0,1,idx_meta:-1]))>0)[0] # detecting the next foot contact of leg 1
+    idx_prev_fc0 = np.where((np.flip(np.abs(input_foot[0,0,idx_meta:-1])) - np.flip(np.abs(input_foot[0,0,idx_meta+1:])))<0)[0] # detecting the previous contact of leg 0
+    idx_prev_fc1 = np.where((np.flip(np.abs(input_foot[0,1,idx_meta:-1])) - np.flip(np.abs(input_foot[0,1,idx_meta+1:])))<0)[0] # detecting the previous contact of leg 1
+    idx_next_to0 = np.where((np.abs(input_foot[0,0,idx_meta+1:]) - np.abs(input_foot[0,0,idx_meta:-1]))<0)[0] # detecting the next toe-off of leg 0
     if ((len(idx_next_fc0)==0) | (len(idx_prev_fc1)==0)):
         return None, None
     ref_position_x, ref_position_y = input_foot[0,0,idx_meta], input_foot[1,0,idx_meta]
@@ -487,7 +485,7 @@ def get_io_time_model_cycle_front(input_foot, input_raw, line, output_metrics):
     head_position_x1, head_position_y1 = input_raw[0,0,time_input1] - ref_position_x, input_raw[1,0,time_input1] - ref_position_y
     head_velocity_x1, head_velocity_y1 = input_raw[2,0,time_input1], input_raw[3,0,time_input1]
     # Interpolation of the inputs
-    output_time = np.linspace(0,1,11)
+    output_time = np.linspace(0,1,51)
     head_position_x1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(head_position_x1)), head_position_x1),-1)
     head_position_y1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(head_position_y1)), head_position_y1),-1)
     head_velocity_x1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(head_velocity_x1)), head_velocity_x1),-1)
@@ -519,7 +517,7 @@ def get_io_time_model_cycle_front(input_foot, input_raw, line, output_metrics):
     if len(idx_2_feet)==0:
         n_2_diago, n_2_nondiago = 0, 0
     else:
-        idx_diago = np.where(((local_foot_mat[idx_2_feet,0]==1) & (local_foot_mat[idx_2_feet,3]==1)) | ((local_foot_mat[idx_2_feet,1]==1) & (local_foot_mat[idx_2_feet,2]==1)))[0]
+        idx_diago = np.where(((local_foot_mat[idx_2_feet,0]==1) & (local_foot_mat[idx_2_feet,2]==1)) | ((local_foot_mat[idx_2_feet,1]==1) & (local_foot_mat[idx_2_feet,3]==1)))[0]
         if len(idx_diago)==0:
             n_2_diago = 0
             n_2_nondiago = n_2_foot
