@@ -237,9 +237,9 @@ def get_io_time_model_fr(input_foot, input_raw, line, output_metrics):
     """
     idx_meta = line[-1].astype(int)
     idx_next_fc0 =  np.where((np.abs(input_foot[0,1,idx_meta+1:]) - np.abs(input_foot[0,1,idx_meta:-1]))>0)[0] # detecting the next foot contact of leg 0
-    idx_next_fc1 =  np.where((np.abs(input_foot[0,2,idx_meta+1:]) - np.abs(input_foot[0,2,idx_meta:-1]))>0)[0] # detecting the next foot contact of leg 1
+    idx_next_fc1 =  np.where((np.abs(input_foot[0,3,idx_meta+1:]) - np.abs(input_foot[0,3,idx_meta:-1]))>0)[0] # detecting the next foot contact of leg 1
     idx_prev_fc0 = np.where((np.flip(np.abs(input_foot[0,1,idx_meta:-1])) - np.flip(np.abs(input_foot[0,1,idx_meta+1:])))<0)[0] # detecting the previous contact of leg 0
-    idx_prev_fc1 = np.where((np.flip(np.abs(input_foot[0,2,idx_meta:-1])) - np.flip(np.abs(input_foot[0,2,idx_meta+1:])))<0)[0] # detecting the previous contact of leg 1
+    idx_prev_fc1 = np.where((np.flip(np.abs(input_foot[0,3,idx_meta:-1])) - np.flip(np.abs(input_foot[0,3,idx_meta+1:])))<0)[0] # detecting the previous contact of leg 1
     if ((len(idx_next_fc0)==0) | (len(idx_next_fc1)==0) | (len(idx_prev_fc0)==0) | (len(idx_prev_fc1)==0)):
         return None, None
     ref_position_x, ref_position_y = input_foot[0,0,idx_meta], input_foot[1,0,idx_meta] 
@@ -253,7 +253,7 @@ def get_io_time_model_fr(input_foot, input_raw, line, output_metrics):
     head_position_x2, head_position_y2 = input_raw[0,0,time_input2] - ref_position_x, input_raw[1,0,time_input2] - ref_position_y 
     head_velocity_x2, head_velocity_y2 = input_raw[2,0,time_input2], input_raw[3,0,time_input2]
     # Interpolation of the inputs 
-    output_time = np.linspace(0,1,11)
+    output_time = np.linspace(0,1,51)
     head_position_x1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(head_position_x1)), head_position_x1),-1)
     head_position_y1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(head_position_y1)), head_position_y1),-1)
     head_velocity_x1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(head_velocity_x1)), head_velocity_x1),-1)
@@ -274,10 +274,10 @@ def get_io_time_model_fr(input_foot, input_raw, line, output_metrics):
     final_position_x_1, final_position_y_1 = input_foot[0,1,idx_meta+idx_next_fc0[0]+2] - ref_position_x, input_foot[1,1,idx_meta+idx_next_fc0[0]+2] - ref_position_y
     time_contact_1 = output_metrics[idx_same1,3][0]
 
-    idx_same2 = np.where((output_metrics[:,0]==line[0]) & (output_metrics[:,2]==2) & (output_metrics[:,-1]==line[-1]))[0]
+    idx_same2 = np.where((output_metrics[:,0]==line[0]) & (output_metrics[:,2]==3) & (output_metrics[:,-1]==line[-1]))[0]
     if len(idx_same2)==0:
         return input_array, None
-    final_position_x_2, final_position_y_2 = input_foot[0,2,idx_meta+idx_next_fc1[0]+2] - ref_position_x, input_foot[1,2,idx_meta+idx_next_fc1[0]+2] - ref_position_y
+    final_position_x_2, final_position_y_2 = input_foot[0,3,idx_meta+idx_next_fc1[0]+2] - ref_position_x, input_foot[1,3,idx_meta+idx_next_fc1[0]+2] - ref_position_y
     time_contact_2 = output_metrics[idx_same2,3][0]
 
 
@@ -291,9 +291,9 @@ def get_io_time_model_fr_self(input_foot, input_raw, line, output_metrics):
     idx_meta = line[-1].astype(int)
 
     idx_next_fc0 =  np.where((np.abs(input_foot[0,1,idx_meta+1:]) - np.abs(input_foot[0,1,idx_meta:-1]))>0)[0] # detecting the next foot contact of leg 0
-    idx_next_fc1 =  np.where((np.abs(input_foot[0,2,idx_meta+1:]) - np.abs(input_foot[0,2,idx_meta:-1]))>0)[0] # detecting the next foot contact of leg 1
+    idx_next_fc1 =  np.where((np.abs(input_foot[0,3,idx_meta+1:]) - np.abs(input_foot[0,3,idx_meta:-1]))>0)[0] # detecting the next foot contact of leg 1
     idx_prev_fc0 = np.where((np.flip(np.abs(input_foot[0,1,idx_meta:-1])) - np.flip(np.abs(input_foot[0,1,idx_meta+1:])))<0)[0] # detecting the previous contact of leg 0
-    idx_prev_fc1 = np.where((np.flip(np.abs(input_foot[0,2,idx_meta:-1])) - np.flip(np.abs(input_foot[0,2,idx_meta+1:])))<0)[0] # detecting the previous contact of leg 1
+    idx_prev_fc1 = np.where((np.flip(np.abs(input_foot[0,3,idx_meta:-1])) - np.flip(np.abs(input_foot[0,3,idx_meta+1:])))<0)[0] # detecting the previous contact of leg 1
     if ((len(idx_next_fc0)==0) | (len(idx_next_fc1)==0) | (len(idx_prev_fc0)==0) | (len(idx_prev_fc1)==0)):
         return None, None
     ref_position_x, ref_position_y = input_foot[0,0,idx_meta], input_foot[1,0,idx_meta] 
@@ -305,10 +305,10 @@ def get_io_time_model_fr_self(input_foot, input_raw, line, output_metrics):
     ##############
     foot_position_x1, foot_position_y1 = input_raw[0,2,time_input1] - ref_position_x, input_raw[1,2,time_input1] - ref_position_y 
     foot_velocity_x1, foot_velocity_y1 = input_raw[2,2,time_input1], input_raw[3,2,time_input1]
-    foot_position_x2, foot_position_y2 = input_raw[0,3,time_input2] - ref_position_x, input_raw[1,3,time_input2] - ref_position_y 
-    foot_velocity_x2, foot_velocity_y2 = input_raw[2,3,time_input2], input_raw[3,3,time_input2]
+    foot_position_x2, foot_position_y2 = input_raw[0,4,time_input2] - ref_position_x, input_raw[1,4,time_input2] - ref_position_y 
+    foot_velocity_x2, foot_velocity_y2 = input_raw[2,4,time_input2], input_raw[3,4,time_input2]
     # Interpolation of the inputs 
-    output_time = np.linspace(0,1,11)
+    output_time = np.linspace(0,1,51)
     foot_position_x1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(foot_position_x1)), foot_position_x1),-1)
     foot_position_y1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(foot_position_y1)), foot_position_y1),-1)
     foot_velocity_x1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(foot_velocity_x1)), foot_velocity_x1),-1)
@@ -329,10 +329,10 @@ def get_io_time_model_fr_self(input_foot, input_raw, line, output_metrics):
     final_position_x_1, final_position_y_1 = input_foot[0,1,idx_meta+idx_next_fc0[0]+2] - ref_position_x, input_foot[1,1,idx_meta+idx_next_fc0[0]+2] - ref_position_y
     time_contact_1 = output_metrics[idx_same1,3][0]
 
-    idx_same2 = np.where((output_metrics[:,0]==line[0]) & (output_metrics[:,2]==2) & (output_metrics[:,-1]==line[-1]))[0]
+    idx_same2 = np.where((output_metrics[:,0]==line[0]) & (output_metrics[:,2]==3) & (output_metrics[:,-1]==line[-1]))[0]
     if len(idx_same2)==0:
         return input_array, None
-    final_position_x_2, final_position_y_2 = input_foot[0,2,idx_meta+idx_next_fc1[0]+2] - ref_position_x, input_foot[1,2,idx_meta+idx_next_fc1[0]+2] - ref_position_y
+    final_position_x_2, final_position_y_2 = input_foot[0,3,idx_meta+idx_next_fc1[0]+2] - ref_position_x, input_foot[1,3,idx_meta+idx_next_fc1[0]+2] - ref_position_y
     time_contact_2 = output_metrics[idx_same2,3][0]
 
 
@@ -347,11 +347,11 @@ def get_rsquare_matrix_feedback(tot_animal, tot_input_list, tot_output_list, boo
 
 
     n_animal = np.max(tot_animal).astype(int)+1
-    rsquare_diagonal = np.zeros((n_animal, 11))
-    gains_diagonal = np.zeros((n_animal,11,5))
+    rsquare_diagonal = np.zeros((n_animal, 51))
+    gains_diagonal = np.zeros((n_animal,51,5))
     for animal in tqdm(range(n_animal)):
         idx_animal = np.where(tot_animal==animal)[0]
-        idx_nan = np.where(~np.isnan(tot_input_list[idx_animal,7,0]))[0]
+        idx_nan = np.where(~np.isnan(tot_input_list[idx_animal,37,0]))[0]
         local_input = tot_input_list[idx_animal[idx_nan],:,4*bool_hind:4+4*bool_hind]
         local_output = tot_output_list[idx_animal[idx_nan],3*bool_hind+bool_lat]
         # Normalization of the inputs 
@@ -364,7 +364,7 @@ def get_rsquare_matrix_feedback(tot_animal, tot_input_list, tot_output_list, boo
             continue
         local_input[:,:,2] = local_input[:,:,2] - np.expand_dims(tmp_vel,-1)
         for line in range(local_input.shape[0]):
-            xinput = np.arange(11)
+            xinput = np.arange(51)
             subjectlin = scipy.stats.linregress(xinput, local_input[line,:,0])
             local_input[line,:,0] = local_input[line,:,0] - (xinput*subjectlin.slope + subjectlin.intercept)
         # Normalization of the outputs
@@ -373,7 +373,7 @@ def get_rsquare_matrix_feedback(tot_animal, tot_input_list, tot_output_list, boo
             local_output = local_output - (tmp_vel * subjectlin.slope + subjectlin.intercept)
         else:
             local_output = local_output - np.nanmean(local_output)
-        for time in range(11):
+        for time in range(51):
             if bool_lat:
                 idx_plot = np.where(local_input[:,time,1]!=0)[0]
             else:
@@ -406,18 +406,25 @@ def multilinear_ols_rsquare(X,y):
     rsquare = 1 - np.sum(np.square(yhat-y)) / np.sum(np.square(y))
     return rsquare
 
+def get_speed(input_metrics):
+    output_speed = np.zeros(len(np.unique(input_metrics[:,0])))
+    for group in range(len(output_speed)):
+        idx_local = np.where((input_metrics[:,0]==group))[0]
+        output_speed[group] = np.nanmedian(input_metrics[idx_local,6])
+    return output_speed
+
 def get_rsquare_matrix_self(tot_animal, tot_input_self, tot_output_self, bool_hind, bool_lat):
     """
     Computes the rsquares matrix for the self prediction
     """
     n_animal = np.max(tot_animal).astype(int) + 1
-    rsquare_diagonal = np.zeros((n_animal,11))
+    rsquare_diagonal = np.zeros((n_animal,51))
     for animal in range(n_animal):
         idx_animal = np.where(tot_animal==animal)[0]
-        idx_nan = np.where(~np.isnan(tot_input_self[idx_animal,7,0]))[0]
+        idx_nan = np.where(~np.isnan(tot_input_self[idx_animal,37,0]))[0]
         local_input = tot_input_self[idx_animal[idx_nan],:,4*bool_hind:4+4*bool_hind]
         local_output = tot_output_self[idx_animal[idx_nan],bool_lat+3*bool_hind] - np.nanmean(tot_output_self[idx_animal[idx_nan],bool_lat+3*bool_hind])
-        for time in range(11):
+        for time in range(51):
             tmp_input_ = local_input[:,time,:]
             design_mat = np.hstack((np.ones((tmp_input_.shape[0],1)),tmp_input_))
             design_mat_y = design_mat
@@ -432,7 +439,7 @@ def get_hildebrand_data(tot_foot_contact_data, tot_metrics):
     """
     Represents the hildebrand data from the contact information and the 
     """
-    interpolation_x = np.linspace(0,1,11)
+    interpolation_x = np.linspace(0,1,51)
     hildebrand_matrix = np.zeros((1,4, len(interpolation_x)))
     idx_same = np.where((tot_metrics[:,1]==0) & (tot_metrics[:,2]==0))[0] # We grab the cycles we are interested in.
     # For each of those, we compute grab the corresponding contact matrix ... 
@@ -451,3 +458,73 @@ def get_hildebrand_data(tot_foot_contact_data, tot_metrics):
 
 
     return hildebrand_matrix[1:,:,:]
+
+def get_io_time_model_cycle_front(input_foot, input_raw, line, output_metrics):
+    """
+    Computes the inputs and outputs at the gait cycle level for the marmoset data
+    The outputs contains the following information
+    Stride length
+    Stride width
+    Stride duration
+    Stance duration
+    Contact timing of the other three legs (relative)
+    Percentage of time with 0, 1, 2 diag, 2 non diag, 3 and 4 legs on the floor
+    """
+    idx_meta = line[-1].astype(int)
+    idx_next_nan = np.where(np.isnan(input_foot[0,0,idx_meta:]))[0]
+    idx_prev_nan = np.where(np.isnan(np.flip(np.squeeze(input_foot[0,0,:idx_meta]))))[0]
+    idx_next_fc0 =  np.where((np.abs(input_foot[0,0,idx_meta+1:idx_meta+idx_next_nan[0]]) - np.abs(input_foot[0,0,idx_meta:idx_meta+idx_next_nan[0]-1]))>0)[0] # detecting the next foot contact of leg 0
+    idx_next_fc1 =  np.where((np.abs(input_foot[0,1,idx_meta+1:idx_meta+idx_next_nan[0]]) - np.abs(input_foot[0,1,idx_meta:idx_meta+idx_next_nan[0]-1]))>0)[0] # detecting the next foot contact of leg 1
+    idx_prev_fc0 = np.where((np.flip(np.abs(input_foot[0,0,idx_meta-idx_prev_nan[0]:idx_meta-1])) - np.flip(np.abs(input_foot[0,0,idx_meta+1-idx_prev_nan[0]:idx_meta])))<0)[0] # detecting the previous contact of leg 0
+    idx_prev_fc1 = np.where((np.flip(np.abs(input_foot[0,1,idx_meta-idx_prev_nan[0]:idx_meta-1])) - np.flip(np.abs(input_foot[0,1,idx_meta+1-idx_prev_nan[0]:idx_meta])))<0)[0] # detecting the previous contact of leg 1
+    idx_next_to0 = np.where((np.abs(input_foot[0,0,idx_meta+1:idx_meta+idx_next_nan[0]]) - np.abs(input_foot[0,0,idx_meta:idx_meta+idx_next_nan[0]-1]))<0)[0] # detecting the next toe-off of leg 0
+    if ((len(idx_next_fc0)==0) | (len(idx_prev_fc1)==0)):
+        return None, None
+    ref_position_x, ref_position_y = input_foot[0,0,idx_meta], input_foot[1,0,idx_meta]
+    time_input1 = np.arange(idx_meta, idx_meta + idx_next_fc0[0]+1)    ##############
+    ### INPUTS ###
+    ##############
+    head_position_x1, head_position_y1 = input_raw[0,0,time_input1] - ref_position_x, input_raw[1,0,time_input1] - ref_position_y
+    head_velocity_x1, head_velocity_y1 = input_raw[2,0,time_input1], input_raw[3,0,time_input1]
+    # Interpolation of the inputs
+    output_time = np.linspace(0,1,11)
+    head_position_x1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(head_position_x1)), head_position_x1),-1)
+    head_position_y1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(head_position_y1)), head_position_y1),-1)
+    head_velocity_x1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(head_velocity_x1)), head_velocity_x1),-1)
+    head_velocity_y1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(head_velocity_y1)), head_velocity_y1),-1)
+    input_array = np.hstack((head_position_x1_, head_position_y1_, head_velocity_x1_, head_velocity_y1_))    ###############
+    ### OUTPUTS ###
+    ###############
+    idx_same1 = np.where((output_metrics[:,0]==line[0]) & (output_metrics[:,2]==0) & (output_metrics[:,-1]==line[-1]))
+    if len(idx_same1)==0:
+        return input_array, None
+    final_position_x_1, final_position_y_1 = line[4], line[5]
+    time_contact_1 = line[3]
+    stance_duration_1 = idx_next_to0[0] if len(idx_next_to0)!=0 else np.nan
+    idx_same2 = np.where((output_metrics[:,0]==line[0]) & (output_metrics[:,-1]==line[-1]) & (output_metrics[:,2]==1))[0]
+    idx_same3 = np.where((output_metrics[:,0]==line[0]) & (output_metrics[:,-1]==line[-1]) & (output_metrics[:,2]==2))[0]
+    idx_same4 = np.where((output_metrics[:,0]==line[0]) & (output_metrics[:,-1]==line[-1]) & (output_metrics[:,2]==3))[0]
+    time_contact_2 = output_metrics[idx_same2[0],3] if len(idx_same2)!=0 else np.nan
+    time_contact_3 = output_metrics[idx_same3[0],3] if len(idx_same3)!=0 else np.nan
+    time_contact_4 = output_metrics[idx_same4[0],3] if len(idx_same4)!=0 else np.nan    # Contact pattern
+    local_foot_mat = (np.squeeze(input_foot[0,:4,time_input1])!=0).astype(int)
+    n_foot_time = np.sum(local_foot_mat, 1)
+    n_0_foot = len(np.where(n_foot_time==0)[0])/len(n_foot_time)
+    n_1_foot = len(np.where(n_foot_time==1)[0])/len(n_foot_time)
+    n_2_foot = len(np.where(n_foot_time==2)[0])/len(n_foot_time)
+    n_3_foot = len(np.where(n_foot_time==3)[0])/len(n_foot_time)
+    n_4_foot = len(np.where(n_foot_time==4)[0])/len(n_foot_time)
+    # Differentiate between 2 diagonals and others
+    idx_2_feet = np.where(n_foot_time==2)[0]
+    if len(idx_2_feet)==0:
+        n_2_diago, n_2_nondiago = 0, 0
+    else:
+        idx_diago = np.where(((local_foot_mat[idx_2_feet,0]==1) & (local_foot_mat[idx_2_feet,3]==1)) | ((local_foot_mat[idx_2_feet,1]==1) & (local_foot_mat[idx_2_feet,2]==1)))[0]
+        if len(idx_diago)==0:
+            n_2_diago = 0
+            n_2_nondiago = n_2_foot
+        else:
+            n_2_diago = len(idx_diago)/len(n_foot_time)
+            n_2_nondiago = (len(idx_2_feet) - len(idx_diago))/len(n_foot_time)
+    output_array = np.expand_dims(np.array([final_position_x_1, final_position_y_1, time_contact_1, stance_duration_1, time_contact_2, time_contact_3, time_contact_4, n_0_foot, n_1_foot, n_2_diago, n_2_nondiago, n_3_foot, n_4_foot]),-1)
+    return input_array, output_array
