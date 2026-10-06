@@ -14,7 +14,7 @@ dt = 0.01
 n_seeds, n_runs = 8, 50
 input_path = os.path.join(os.getcwd(),'runs')
 for seed in range(n_seeds):
-    local_output_path = os.path.join(input_path,f'baseline_lowrange_nrg_seed_{seed+1}','results')
+    local_output_path = os.path.join(input_path,f'baseline_lowrange_seed_{seed+1}','results')
     os.makedirs(local_output_path, exist_ok=True)
     list_target, list_true = [], []
     list_duration_1, list_duration_2, list_duration_3, list_duration_4 = [], [], [], []
@@ -22,22 +22,15 @@ for seed in range(n_seeds):
     list_corr2, list_corr3 ,list_corr4 = [], [], []
     total_metrics = np.zeros((1,8))
     total_phase = np.zeros((1,7))
-    total_hildebrand = np.zeros((1,4,11))
+    total_hildebrand = np.zeros((1,4,51))
     list_input_body, list_input_self, list_output = [], [], []
+    list_input_stride, list_output_stride, list_animal_stride = [], [] ,[]
     for run in range(n_runs):
-        local_data = pd.read_csv(os.path.join(input_path,f'baseline_lowrange_nrg_seed_{seed+1}',f'data_run{run}.csv'))
-        # print(local_data.keys())
-        # fig, axs = plt.subplots(1,1,figsize=(20,5))
-        # axs.spines[['top','right']].set_visible(False)
-        # axs.plot(local_data['act_0'].values,'k')
-        # axs.plot(local_data['act_1'].values,'r')
-        # axs.set_xlim([0,500])
-        # plt.tight_layout()
-        # fig.savefig('dummy_fig.png',bbox_inches='tight')
-        # sys.exit()
+        local_data = pd.read_csv(os.path.join(input_path,f'baseline_lowrange_seed_{seed+1}',f'data_run{run}.csv'))
         input_data = reshape_data(local_data)
         input_data = compute_velocity_markers(input_data)
         foot_contact_matrix = get_foot_contact(input_data)
+
 
         # Getting the foot contact metrics 
         matrix_metrics = extract_metrics(input_data, foot_contact_matrix, run)
@@ -58,7 +51,7 @@ for seed in range(n_seeds):
         # Getting the foot placement control data 
         idx_to_keep = np.where((matrix_metrics[:,1]==0) & (matrix_metrics[:,2]==0))[0]
     
-        total_input, total_output, total_input_self = np.zeros((len(idx_to_keep),11,8)), np.zeros((len(idx_to_keep),6)), np.zeros((len(idx_to_keep),11,8))
+        total_input, total_output, total_input_self = np.zeros((len(idx_to_keep),51,8)), np.zeros((len(idx_to_keep),6)), np.zeros((len(idx_to_keep),51,8))
         total_animal = matrix_metrics[idx_to_keep,0]
         idx_nans = np.where(np.isnan(input_data[0,0,:]))[0]
         for line in tqdm(range(len(idx_to_keep))):
@@ -81,7 +74,37 @@ for seed in range(n_seeds):
         list_input_body.append(total_input)
         list_input_self.append(total_input_self)
         list_output.append(total_output)
-        
+       
+        idx_to_keep = np.where((matrix_metrics[:,1]==0) & (matrix_metrics[:,2]==0))[0]
+        total_input, total_output = np.zeros((len(idx_to_keep),51,4)), np.zeros((len(idx_to_keep),14))
+        total_animal = matrix_metrics[idx_to_keep,0]
+        for line in tqdm(range(len(idx_to_keep))):
+            tmp_input, tmp_output = get_io_time_model_cycle_front(foot_contact_matrix, input_data, matrix_metrics[idx_to_keep[line],:], matrix_metrics)
+            if tmp_output is None:
+                total_input[line,:], total_output[line,:] = np.nan, np.nan
+            elif tmp_output.shape[1]!=0:
+                total_input[line,:] = tmp_input
+                total_output[line,0] = tmp_output[0][0]
+                total_output[line,1] = tmp_output[1][0]
+                total_output[line,2] = tmp_output[2][0]
+                total_output[line,3] = tmp_output[3][0]
+                total_output[line,4] = tmp_output[4][0]
+                total_output[line,5] = tmp_output[5][0]
+                total_output[line,6] = tmp_output[6][0]
+                total_output[line,7] = tmp_output[7][0]
+                total_output[line,8] = tmp_output[8][0]
+                total_output[line,9] = tmp_output[9][0]
+                total_output[line,10] = tmp_output[10][0]
+                total_output[line,11] = tmp_output[11][0]
+                total_output[line,12] = tmp_output[12][0]
+                total_output[line,13] = matrix_metrics[idx_to_keep[line],0]
+            else:
+                total_input[line,:], total_output[line,:] = np.nan, np.nan
+
+        list_input_stride.append(total_input)
+        list_output_stride.append(total_output)
+        list_animal_stride.append(total_animal)
+
         local_speed = np.mean(np.diff(local_data['torso_x'].values))/dt
         list_target.append(local_data['target_speed'].values[0])
         list_true.append(local_speed)
@@ -128,6 +151,13 @@ for seed in range(n_seeds):
         pickle.dump(list_input_self, f2)
     with open(os.path.join(local_output_path,'list_output.pkl'),'wb') as f3:
         pickle.dump(list_output, f3)
+
+    with open(os.path.join(local_output_path,'list_input_stride.pkl'),'wb') as f4:
+        pickle.dump(list_input_stride, f4)
+    with open(os.path.join(local_output_path,'list_output_stride.pkl'),'wb') as f5:
+        pickle.dump(list_output_stride, f5)
+    with open(os.path.join(local_output_path,'list_animal_stride.pkl'),'wb') as f6:
+        pickle.dump(list_animal_stride,f6)
 
     # Saving the data once and for all
     np.save(os.path.join(local_output_path,'total_metrics.npy'), total_metrics)
