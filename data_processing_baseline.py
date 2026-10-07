@@ -23,7 +23,7 @@ for seed in range(n_seeds):
     total_metrics = np.zeros((1,8))
     total_phase = np.zeros((1,7))
     total_hildebrand = np.zeros((1,4,51))
-    list_input_body, list_input_self, list_output = [], [], []
+    list_input_body, list_input_self, list_output, list_animal = [], [], [], []
     list_input_stride, list_output_stride, list_animal_stride = [], [] ,[]
     for run in range(n_runs):
         local_data = pd.read_csv(os.path.join(input_path,f'baseline_lowrange_seed_{seed+1}',f'data_run{run}.csv'))
@@ -75,6 +75,7 @@ for seed in range(n_seeds):
         list_input_body.append(total_input)
         list_input_self.append(total_input_self)
         list_output.append(total_output)
+        list_animal.append(total_animal)
        
         idx_to_keep = np.where((matrix_metrics[:,1]==0) & (matrix_metrics[:,2]==0))[0]
         total_input, total_output = np.zeros((len(idx_to_keep),51,4)), np.zeros((len(idx_to_keep),14))
@@ -146,6 +147,8 @@ for seed in range(n_seeds):
     total_phase = total_phase[1:,:]
     idx_same = np.where((total_metrics[:,1]==0) & (total_metrics[:,2]==0))[0]
 
+    with open(os.path.join(local_output_path,'list_animal.pkl'),'wb') as f0:
+        pickle.dump(list_animal, f0)
     with open(os.path.join(local_output_path,'list_input_body.pkl'),'wb') as f1:
         pickle.dump(list_input_body, f1)
     with open(os.path.join(local_output_path,'list_input_self.pkl'),'wb') as f2:
