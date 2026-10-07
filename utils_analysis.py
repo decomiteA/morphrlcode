@@ -9,6 +9,16 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
+def get_actions(input_data):
+    """
+    Extracts the actions from the raw data
+    """
+    tmp = input_data['act_1'].values
+    output_actions = np.zeros((8,len(tmp)))
+    for act in range(8):
+        output_actions[act,:] = input_data[f'act_{act}'].values
+    return output_actions
+
 def reshape_data(input_data):
     """
     Reshapes the input data in the format that allows for proper analysis
@@ -77,8 +87,8 @@ def get_foot_contact(input_data):
             cdt2 = (-1 if bool_up else 1)
             len_before_time = len(bool_contact[:time,leg])
             len_after_time = len(bool_contact[time:,leg])
-            min_look_back = min(5, len_before_time)
-            min_look_after = min(5, len_after_time)
+            min_look_back = min(1, len_before_time)
+            min_look_after = min(1, len_after_time)
             if ((bool_contact[time, leg]==cdt1) & (np.sum(np.abs(bool_contact[time-min_look_back:time,leg]))==0) & (np.sum(np.abs(bool_contact[time+1:time+1+min_look_after,leg]))==0)): 
                 idx_next_toeoff = np.where(bool_contact[time:,leg]==cdt2)[0]
                 if len(idx_next_toeoff)==0:
@@ -238,8 +248,8 @@ def get_io_time_model_fr(input_foot, input_raw, line, output_metrics):
     idx_meta = line[-1].astype(int)
     idx_next_fc0 =  np.where((np.abs(input_foot[0,1,idx_meta+1:]) - np.abs(input_foot[0,1,idx_meta:-1]))>0)[0] # detecting the next foot contact of leg 0
     idx_next_fc1 =  np.where((np.abs(input_foot[0,3,idx_meta+1:]) - np.abs(input_foot[0,3,idx_meta:-1]))>0)[0] # detecting the next foot contact of leg 1
-    idx_prev_fc0 = np.where((np.flip(np.abs(input_foot[0,1,idx_meta:-1])) - np.flip(np.abs(input_foot[0,1,idx_meta+1:])))<0)[0] # detecting the previous contact of leg 0
-    idx_prev_fc1 = np.where((np.flip(np.abs(input_foot[0,3,idx_meta:-1])) - np.flip(np.abs(input_foot[0,3,idx_meta+1:])))<0)[0] # detecting the previous contact of leg 1
+    idx_prev_fc0 = np.where((np.flip(np.abs(input_foot[0,1,:idx_meta-1])) - np.flip(np.abs(input_foot[0,1,1:idx_meta])))<0)[0] # detecting the previous contact of leg 0
+    idx_prev_fc1 = np.where((np.flip(np.abs(input_foot[0,3,:idx_meta-1])) - np.flip(np.abs(input_foot[0,3,1:idx_meta])))<0)[0] # detecting the previous contact of leg 1
     if ((len(idx_next_fc0)==0) | (len(idx_next_fc1)==0) | (len(idx_prev_fc0)==0) | (len(idx_prev_fc1)==0)):
         return None, None
     ref_position_x, ref_position_y = input_foot[0,0,idx_meta], input_foot[1,0,idx_meta] 
@@ -292,8 +302,8 @@ def get_io_time_model_fr_self(input_foot, input_raw, line, output_metrics):
 
     idx_next_fc0 =  np.where((np.abs(input_foot[0,1,idx_meta+1:]) - np.abs(input_foot[0,1,idx_meta:-1]))>0)[0] # detecting the next foot contact of leg 0
     idx_next_fc1 =  np.where((np.abs(input_foot[0,3,idx_meta+1:]) - np.abs(input_foot[0,3,idx_meta:-1]))>0)[0] # detecting the next foot contact of leg 1
-    idx_prev_fc0 = np.where((np.flip(np.abs(input_foot[0,1,idx_meta:-1])) - np.flip(np.abs(input_foot[0,1,idx_meta+1:])))<0)[0] # detecting the previous contact of leg 0
-    idx_prev_fc1 = np.where((np.flip(np.abs(input_foot[0,3,idx_meta:-1])) - np.flip(np.abs(input_foot[0,3,idx_meta+1:])))<0)[0] # detecting the previous contact of leg 1
+    idx_prev_fc0 = np.where((np.flip(np.abs(input_foot[0,1,:idx_meta-1])) - np.flip(np.abs(input_foot[0,1,1:idx_meta])))<0)[0] # detecting the previous contact of leg 0
+    idx_prev_fc1 = np.where((np.flip(np.abs(input_foot[0,3,:idx_meta-1])) - np.flip(np.abs(input_foot[0,3,1:idx_meta])))<0)[0] # detecting the previous contact of leg 1
     if ((len(idx_next_fc0)==0) | (len(idx_next_fc1)==0) | (len(idx_prev_fc0)==0) | (len(idx_prev_fc1)==0)):
         return None, None
     ref_position_x, ref_position_y = input_foot[0,0,idx_meta], input_foot[1,0,idx_meta] 

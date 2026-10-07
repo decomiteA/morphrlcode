@@ -70,7 +70,8 @@ for seed in range(n_seeds):
                 total_output[line,5] = tmp_output[5][0]
             else:
                 total_input[line,:], total_output[line,:], total_input_self[line,:] = np.nan, np.nan, np.nan
-    
+
+
         list_input_body.append(total_input)
         list_input_self.append(total_input_self)
         list_output.append(total_output)
