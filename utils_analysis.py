@@ -483,8 +483,8 @@ def get_io_time_model_cycle_front(input_foot, input_raw, line, output_metrics):
     idx_meta = line[-1].astype(int)
     idx_next_fc0 =  np.where((np.abs(input_foot[0,0,idx_meta+1:]) - np.abs(input_foot[0,0,idx_meta:-1]))>0)[0] # detecting the next foot contact of leg 0
     idx_next_fc1 =  np.where((np.abs(input_foot[0,1,idx_meta+1:]) - np.abs(input_foot[0,1,idx_meta:-1]))>0)[0] # detecting the next foot contact of leg 1
-    idx_prev_fc0 = np.where((np.flip(np.abs(input_foot[0,0,idx_meta:-1])) - np.flip(np.abs(input_foot[0,0,idx_meta+1:])))<0)[0] # detecting the previous contact of leg 0
-    idx_prev_fc1 = np.where((np.flip(np.abs(input_foot[0,1,idx_meta:-1])) - np.flip(np.abs(input_foot[0,1,idx_meta+1:])))<0)[0] # detecting the previous contact of leg 1
+    idx_prev_fc0 = np.where((np.flip(np.abs(input_foot[0,0,:idx_meta-1])) - np.flip(np.abs(input_foot[0,0,1:idx_meta])))<0)[0] # detecting the previous contact of leg 0
+    idx_prev_fc1 = np.where((np.flip(np.abs(input_foot[0,1,:idx_meta-1])) - np.flip(np.abs(input_foot[0,1,1:idx_meta])))<0)[0] # detecting the previous contact of leg 1
     idx_next_to0 = np.where((np.abs(input_foot[0,0,idx_meta+1:]) - np.abs(input_foot[0,0,idx_meta:-1]))<0)[0] # detecting the next toe-off of leg 0
     if ((len(idx_next_fc0)==0) | (len(idx_prev_fc1)==0)):
         return None, None
