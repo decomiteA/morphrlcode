@@ -263,7 +263,7 @@ def get_io_time_model_fr(input_foot, input_raw, line, output_metrics):
     head_position_x2, head_position_y2 = input_raw[0,0,time_input2] - ref_position_x, input_raw[1,0,time_input2] - ref_position_y 
     head_velocity_x2, head_velocity_y2 = input_raw[2,0,time_input2], input_raw[3,0,time_input2]
     # Interpolation of the inputs 
-    output_time = np.linspace(0,1,51)
+    output_time = np.linspace(0,1,11)
     head_position_x1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(head_position_x1)), head_position_x1),-1)
     head_position_y1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(head_position_y1)), head_position_y1),-1)
     head_velocity_x1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(head_velocity_x1)), head_velocity_x1),-1)
@@ -318,7 +318,7 @@ def get_io_time_model_fr_self(input_foot, input_raw, line, output_metrics):
     foot_position_x2, foot_position_y2 = input_raw[0,4,time_input2] - ref_position_x, input_raw[1,4,time_input2] - ref_position_y 
     foot_velocity_x2, foot_velocity_y2 = input_raw[2,4,time_input2], input_raw[3,4,time_input2]
     # Interpolation of the inputs 
-    output_time = np.linspace(0,1,51)
+    output_time = np.linspace(0,1,11)
     foot_position_x1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(foot_position_x1)), foot_position_x1),-1)
     foot_position_y1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(foot_position_y1)), foot_position_y1),-1)
     foot_velocity_x1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(foot_velocity_x1)), foot_velocity_x1),-1)
@@ -357,11 +357,11 @@ def get_rsquare_matrix_feedback(tot_animal, tot_input_list, tot_output_list, boo
 
 
     n_animal = np.max(tot_animal).astype(int)+1
-    rsquare_diagonal = np.zeros((n_animal, 51))
-    gains_diagonal = np.zeros((n_animal,51,5))
+    rsquare_diagonal = np.zeros((n_animal, 11))
+    gains_diagonal = np.zeros((n_animal,11,5))
     for animal in tqdm(range(n_animal)):
         idx_animal = np.where(tot_animal==animal)[0]
-        idx_nan = np.where(~np.isnan(tot_input_list[idx_animal,37,0]))[0]
+        idx_nan = np.where(~np.isnan(tot_input_list[idx_animal,7,0]))[0]
         local_input = tot_input_list[idx_animal[idx_nan],:,4*bool_hind:4+4*bool_hind]
         local_output = tot_output_list[idx_animal[idx_nan],3*bool_hind+bool_lat]
         # Normalization of the inputs 
@@ -374,7 +374,7 @@ def get_rsquare_matrix_feedback(tot_animal, tot_input_list, tot_output_list, boo
             continue
         local_input[:,:,2] = local_input[:,:,2] - np.expand_dims(tmp_vel,-1)
         for line in range(local_input.shape[0]):
-            xinput = np.arange(51)
+            xinput = np.arange(11)
             subjectlin = scipy.stats.linregress(xinput, local_input[line,:,0])
             local_input[line,:,0] = local_input[line,:,0] - (xinput*subjectlin.slope + subjectlin.intercept)
         # Normalization of the outputs
@@ -383,12 +383,8 @@ def get_rsquare_matrix_feedback(tot_animal, tot_input_list, tot_output_list, boo
             local_output = local_output - (tmp_vel * subjectlin.slope + subjectlin.intercept)
         else:
             local_output = local_output - np.nanmean(local_output)
-        for time in range(51):
-            if bool_lat:
-                idx_plot = np.where(local_input[:,time,1]!=0)[0]
-            else:
-                idx_plot = np.where(local_input[:,time,1]!=0)[0]
-            design_mat = np.hstack((np.ones((local_input[idx_plot].shape[0],1)),local_input[idx_plot,time,:]))
+        for time in range(11):
+            design_mat = np.hstack((np.ones((local_input.shape[0],1)),local_input[:,time,:]))
             if not bool_lat:
                 design_mat_y = design_mat[:,[0,1,2,3,4]]
             else:
@@ -396,7 +392,7 @@ def get_rsquare_matrix_feedback(tot_animal, tot_input_list, tot_output_list, boo
             if design_mat_y.shape[0]<10:
                 rsquare_diagonal[animal,time] = np.nan 
             else:
-                a, b = multilinear_ols_rsquare_gains(design_mat_y, local_output[idx_plot])
+                a, b = multilinear_ols_rsquare_gains(design_mat_y, local_output)
                 pred_output = b @ design_mat_y.T
                 gains_diagonal[animal,time,:] = b
                 rsquare_diagonal[animal,time] = a #multilinear_ols_rsquare(design_mat_y, local_output[idx_plot])
@@ -428,13 +424,13 @@ def get_rsquare_matrix_self(tot_animal, tot_input_self, tot_output_self, bool_hi
     Computes the rsquares matrix for the self prediction
     """
     n_animal = np.max(tot_animal).astype(int) + 1
-    rsquare_diagonal = np.zeros((n_animal,51))
+    rsquare_diagonal = np.zeros((n_animal,11))
     for animal in range(n_animal):
         idx_animal = np.where(tot_animal==animal)[0]
-        idx_nan = np.where(~np.isnan(tot_input_self[idx_animal,37,0]))[0]
+        idx_nan = np.where(~np.isnan(tot_input_self[idx_animal,7,0]))[0]
         local_input = tot_input_self[idx_animal[idx_nan],:,4*bool_hind:4+4*bool_hind]
         local_output = tot_output_self[idx_animal[idx_nan],bool_lat+3*bool_hind] - np.nanmean(tot_output_self[idx_animal[idx_nan],bool_lat+3*bool_hind])
-        for time in range(51):
+        for time in range(11):
             tmp_input_ = local_input[:,time,:]
             design_mat = np.hstack((np.ones((tmp_input_.shape[0],1)),tmp_input_))
             design_mat_y = design_mat
@@ -468,6 +464,17 @@ def get_hildebrand_data(tot_foot_contact_data, tot_metrics):
 
 
     return hildebrand_matrix[1:,:,:]
+
+def get_avg_speed(animal_data, input_data):
+    """
+    extracts the average speed per run (ie per animal)
+    """
+    n_animal = len(np.unique(animal_data))
+    output_data = np.zeros((n_animal,1))
+    for animal in range(n_animal):
+        idx_local = np.where((animal_data==animal))[0]
+        output_data[animal] = np.nanmean(np.nanmean(input_data[idx_local,:,2],axis=1),axis=0)
+    return output_data
 
 def get_io_time_model_cycle_front(input_foot, input_raw, line, output_metrics):
     """

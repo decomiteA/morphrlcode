@@ -7,12 +7,12 @@ from utils_analysis import *
 import matplotlib.cm as cm
 import warnings
 warnings.filterwarnings('ignore')
-str_group = 'baseline_highrange'
+str_group = 'baseline_lowrange_w5'
 output_path = os.path.join(os.getcwd(),'ResultsFigures')
 os.makedirs(output_path,exist_ok=True)
 folder_hildebrand = os.path.join(output_path,f'hildebrandfigures_{str_group}')
 os.makedirs(folder_hildebrand,exist_ok=True)
-n_seeds = 8
+n_seeds = 1
 list_metrics_data, list_phasor_data, list_hildebrand, list_speed = [], [], [], []
 for seed in range(n_seeds):
     local_input_path = os.path.join(os.getcwd(),'runs',f'{str_group}_seed_{seed+1}','results')

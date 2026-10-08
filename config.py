@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 
 ENV_NAME = "custom_ant"
+ENV_NAME_BIS = "custom_ant_bis"
 
 ENV_NAME_HUMAN = "custom_human"
 

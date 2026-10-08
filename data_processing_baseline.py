@@ -10,11 +10,11 @@ from tqdm import tqdm
 from utils_analysis import *
 import matplotlib.pyplot as plt 
 
-dt = 0.01
-n_seeds, n_runs = 8, 50
+dt = 0.05
+n_seeds, n_runs = 1, 50
 input_path = os.path.join(os.getcwd(),'runs')
 for seed in range(n_seeds):
-    local_output_path = os.path.join(input_path,f'baseline_lowrange_seed_{seed+1}','results')
+    local_output_path = os.path.join(input_path,f'baseline_lowrange_w5_seed_{seed+1}','results')
     os.makedirs(local_output_path, exist_ok=True)
     list_target, list_true = [], []
     list_duration_1, list_duration_2, list_duration_3, list_duration_4 = [], [], [], []
@@ -26,14 +26,16 @@ for seed in range(n_seeds):
     list_input_body, list_input_self, list_output, list_animal = [], [], [], []
     list_input_stride, list_output_stride, list_animal_stride = [], [] ,[]
     for run in range(n_runs):
-        local_data = pd.read_csv(os.path.join(input_path,f'baseline_lowrange_seed_{seed+1}',f'data_run{run}.csv'))
+        local_data = pd.read_csv(os.path.join(input_path,f'baseline_lowrange_w5_seed_{seed+1}',f'data_run{run}.csv'))
         input_data = reshape_data(local_data)
-        input_data = compute_velocity_markers(input_data)
+        # print(input_data.shape)
+        # sys.exit()
+        input_data = compute_velocity_markers(input_data, framerate=1/dt)
         foot_contact_matrix = get_foot_contact(input_data)
 
 
         # Getting the foot contact metrics 
-        matrix_metrics = extract_metrics(input_data, foot_contact_matrix, run)
+        matrix_metrics = extract_metrics(input_data, foot_contact_matrix, run, framerate=1/dt)
         total_metrics = np.concatenate((total_metrics, matrix_metrics), axis=0)
 
 
@@ -42,7 +44,7 @@ for seed in range(n_seeds):
         total_hildebrand = np.concatenate((total_hildebrand, np.expand_dims(local_hildebrand,axis=0)),axis=0)
         # For the summary statistics (high level)
     
-        phasor_metrics_leg_0 = extract_phasor_metrics(input_data, foot_contact_matrix, run, leg_id=0)
+        phasor_metrics_leg_0 = extract_phasor_metrics(input_data, foot_contact_matrix, run, framerate=1/dt, leg_id=0)
         # phasor_metrics_leg_1 = extract_phasor_metrics(input_data, foot_contact_matrix, run, leg_id=1)
         # phasor_metrics_leg_2 = extract_phasor_metrics(input_data, foot_contact_matrix, run, leg_id=2)
         # phasor_metrics_leg_3 = extract_phasor_metrics(input_data, foot_contact_matrix, run, leg_id=3)
@@ -51,7 +53,7 @@ for seed in range(n_seeds):
         # Getting the foot placement control data 
         idx_to_keep = np.where((matrix_metrics[:,1]==0) & (matrix_metrics[:,2]==0))[0]
     
-        total_input, total_output, total_input_self = np.zeros((len(idx_to_keep),51,8)), np.zeros((len(idx_to_keep),6)), np.zeros((len(idx_to_keep),51,8))
+        total_input, total_output, total_input_self = np.zeros((len(idx_to_keep),11,8)), np.zeros((len(idx_to_keep),6)), np.zeros((len(idx_to_keep),11,8))
         total_animal = matrix_metrics[idx_to_keep,0]
         idx_nans = np.where(np.isnan(input_data[0,0,:]))[0]
         for line in tqdm(range(len(idx_to_keep))):

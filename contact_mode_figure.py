@@ -17,7 +17,7 @@ matrix_stance_duration = np.zeros((n_seeds, len(bins_centers)))
 matrix_duty_cycle = np.zeros((n_seeds, len(bins_centers)))
 matrix_contact_mode = np.zeros((n_seeds, len(bins_centers),6))
 for seed in range(n_seeds):
-    input_path = os.path.join(os.getcwd(),'runs',f'baseline_lowrange_seed_{seed+1}','results')
+    input_path = os.path.join(os.getcwd(),'runs',f'baseline_lowrange_d10_seed_{seed+1}','results')
 
     with open(os.path.join(input_path,'list_input_stride.pkl'),'rb') as f1:
         list_input_stride = pickle.load(f1)
@@ -53,7 +53,7 @@ axs.plot(bins_centers,np.nanmedian(matrix_stance_duration,axis=0), color='k', lw
 axs.fill_between(bins_centers,np.nanpercentile(matrix_stance_duration,axis=0,q=25), np.nanpercentile(matrix_stance_duration,axis=0,q=75), color='k', alpha=0.5)
 axs.set_xlabel('speed'), axs.set_ylabel('stance duration')
 plt.tight_layout()
-fig.savefig(os.path.join(output_path,'baseline_lowrange_stance_duration.png'),bbox_inches='tight')
+fig.savefig(os.path.join(output_path,'baseline_lowrange_d10_stance_duration.png'),bbox_inches='tight')
 
 fig, axs = plt.subplots(1,1,figsize=(3,3))
 axs.spines[['top','right']].set_visible(False)
@@ -61,7 +61,7 @@ axs.plot(bins_centers,np.nanmedian(matrix_duty_cycle,axis=0), color='k', lw=2)
 axs.fill_between(bins_centers,np.nanpercentile(matrix_duty_cycle,axis=0,q=25), np.nanpercentile(matrix_duty_cycle,axis=0,q=75), color='k', alpha=0.5)
 axs.set_xlabel('speed'), axs.set_ylabel('duty cycle')
 plt.tight_layout()
-fig.savefig(os.path.join(output_path,'baseline_lowrange_duty_cycle.png'),bbox_inches='tight')
+fig.savefig(os.path.join(output_path,'baseline_lowrange_d10_duty_cycle.png'),bbox_inches='tight')
 
 labels = ['0 paw','1 paw','2 diago','2 others','3 paws','4 paws']
 cmap = cm.gray(np.linspace(0,0.7,7))
@@ -71,4 +71,5 @@ axs.stackplot(bins_centers,np.nanmean(matrix_contact_mode,axis=0).T,colors=cmap,
 axs.set_ylabel('proportion'), axs.set_xlabel('speed')
 axs.legend(frameon=False)
 plt.tight_layout()
-fig.savefig(os.path.join(output_path,'baseline_lowrange_contact_mode.png'),bbox_inches='tight')
+fig.savefig(os.path.join(output_path,'baseline_lowrange_d10_contact_mode.png'),bbox_inches='tight')
+# baseline_lowrange_d10_seed_
