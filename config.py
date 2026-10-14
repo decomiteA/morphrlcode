@@ -7,6 +7,7 @@ ENV_NAME = "custom_ant"
 ENV_NAME_BIS = "custom_ant_bis"
 
 ENV_NAME_HUMAN = "custom_human"
+ENV_NAME_HEXAPED = "custom_hexaped"
 
 @dataclass
 class PPOConfig:
@@ -24,9 +25,9 @@ class PPOConfig:
     normalize_observations: bool = True
     seed: int = 0
 
-    runs_dir: str = "runs"
+    runs_dir: str = "final_runs"
     rollout_steps: int = 10_000
     n_samples: int = 50
 
     speed_min: float = 0.5    # change range for greater variation in speed, but may require more training time
-    speed_max: float = 2
+    speed_max: float = 2.0

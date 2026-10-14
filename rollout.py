@@ -17,13 +17,53 @@ from brax.training.agents.ppo import checkpoint as ppo_checkpoint
 from brax.training.agents.ppo import networks as ppo_networks
 from brax.training.acme import running_statistics
 from config import ENV_NAME, PPOConfig
-from env import DEFAULT_XML, HUMAN_XML
+from env import DEFAULT_XML, HUMAN_XML, HEXAPED_XML
 
 
 def _render_video(trajectory, dt, output_path, width=640, height=480,
                   cam_distance=5.0, show_axis=False, xml_path=None):
     fps = max(1, round(1.0 / float(dt)))
     mj_model = mujoco.MjModel.from_xml_path(xml_path or DEFAULT_XML)
+    mj_data = mujoco.MjData(mj_model)
+    torso_id = mujoco.mj_name2id(mj_model, mujoco.mjtObj.mjOBJ_BODY, "torso")
+
+    cam = mujoco.MjvCamera()
+    cam.type = mujoco.mjtCamera.mjCAMERA_TRACKING
+    cam.trackbodyid = torso_id
+    cam.distance = cam_distance
+    cam.azimuth = 90
+    cam.elevation = -15
+
+    renderer = mujoco.Renderer(mj_model, height=height, width=width)
+    frames = []
+    for ps in trajectory:
+        mj_data.qpos[:] = np.asarray(ps.q)
+        mj_data.qvel[:] = np.asarray(ps.qd)
+        mujoco.mj_forward(mj_model, mj_data)
+        renderer.update_scene(mj_data, camera=cam)
+
+        if show_axis and renderer.scene.ngeom < renderer.scene.maxgeom:
+            g = renderer.scene.geoms[renderer.scene.ngeom]
+            mujoco.mjv_initGeom(
+                g, mujoco.mjtGeom.mjGEOM_CAPSULE,
+                np.zeros(3), np.zeros(3), np.eye(3).flatten(),
+                np.array([1, 0, 0, 1], dtype=np.float32),
+            )
+            mujoco.mjv_connector(
+                g, mujoco.mjtGeom.mjGEOM_CAPSULE, 0.02,
+                np.array([-200, 0, 0.01]),
+                np.array([200, 0, 0.01]),
+            )
+            renderer.scene.ngeom += 1
+
+        frames.append(renderer.render().copy())
+    renderer.close()
+    imageio.mimsave(output_path, frames, fps=fps)
+
+def _render_video_6(trajectory, dt, output_path, width=640, height=480,
+                  cam_distance=5.0, show_axis=False, xml_path=None):
+    fps = max(1, round(1.0 / float(dt)))
+    mj_model = mujoco.MjModel.from_xml_path(xml_path or HEXAPED_XML)
     mj_data = mujoco.MjData(mj_model)
     torso_id = mujoco.mj_name2id(mj_model, mujoco.mjtObj.mjOBJ_BODY, "torso")
 
@@ -208,7 +248,7 @@ def _save_data_6(pipeline_states, dt, steps, output_path, sys, target_speed=None
     link_names = list(sys.link_names)
     torso_idx  = link_names.index("torso")
 
-    mj_model = mujoco.MjModel.from_xml_path(DEFAULT_XML)
+    mj_model = mujoco.MjModel.from_xml_path(HEXAPED_XML)
 
     def _site_id(name):
         return mujoco.mj_name2id(mj_model, mujoco.mjtObj.mjOBJ_SITE, name)

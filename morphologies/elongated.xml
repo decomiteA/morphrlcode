@@ -31,7 +31,7 @@
     <geom conaffinity="1" condim="3" material="MatPlane" name="floor" pos="0 0 0" size="500 500 500" type="plane" rgba="0.5 0.5 0.5 1.0"/>
     <body name="torso" pos="0 0 0.589">
       <camera name="track" mode="trackcom" pos="0 -3 0.3" xyaxes="1 0 0 0 0 1"/>
-      <geom name="torso_geom" fromto="-0.4 0 0 0.4 0 0" size="0.25" type="capsule"/>
+      <geom name="torso_geom" fromto="-0.4 0 0 0.4 0 0" size="0.15" type="capsule"/>
       <joint armature="0" damping="0" limited="false" margin="0.01" name="root" pos="0 0 0" type="free"/>
       <body name="front_left_leg" pos="0.4 0 0">
         <geom fromto="0 0 0 0.2 0.2 0" name="aux_1_geom" size="0.08" type="capsule"/>

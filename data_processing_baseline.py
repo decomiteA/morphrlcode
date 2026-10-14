@@ -14,7 +14,7 @@ dt = 0.05
 n_seeds, n_runs = 1, 50
 input_path = os.path.join(os.getcwd(),'runs')
 for seed in range(n_seeds):
-    local_output_path = os.path.join(input_path,f'baseline_lowrange_w5_seed_{seed+1}','results')
+    local_output_path = os.path.join(input_path,f'baseline_lowrange_longbody_seed_{seed+1}','results')
     os.makedirs(local_output_path, exist_ok=True)
     list_target, list_true = [], []
     list_duration_1, list_duration_2, list_duration_3, list_duration_4 = [], [], [], []
@@ -26,11 +26,12 @@ for seed in range(n_seeds):
     list_input_body, list_input_self, list_output, list_animal = [], [], [], []
     list_input_stride, list_output_stride, list_animal_stride = [], [] ,[]
     for run in range(n_runs):
-        local_data = pd.read_csv(os.path.join(input_path,f'baseline_lowrange_w5_seed_{seed+1}',f'data_run{run}.csv'))
-        input_data = reshape_data(local_data)
-        # print(input_data.shape)
-        # sys.exit()
+        local_data = pd.read_csv(os.path.join(input_path,f'baseline_lowrange_longbody_seed_{seed+1}',f'data_run{run}.csv'))
+        input_data = rotate_6legs_data(reshape_data(local_data))
+        #input_data = reshape_data(local_data)
         input_data = compute_velocity_markers(input_data, framerate=1/dt)
+        print(input_data.shape)
+        
         foot_contact_matrix = get_foot_contact(input_data)
 
 
@@ -52,8 +53,7 @@ for seed in range(n_seeds):
     
         # Getting the foot placement control data 
         idx_to_keep = np.where((matrix_metrics[:,1]==0) & (matrix_metrics[:,2]==0))[0]
-    
-        total_input, total_output, total_input_self = np.zeros((len(idx_to_keep),11,8)), np.zeros((len(idx_to_keep),6)), np.zeros((len(idx_to_keep),11,8))
+        total_input, total_output, total_input_self = np.zeros((len(idx_to_keep),51,8)), np.zeros((len(idx_to_keep),6)), np.zeros((len(idx_to_keep),51,8))
         total_animal = matrix_metrics[idx_to_keep,0]
         idx_nans = np.where(np.isnan(input_data[0,0,:]))[0]
         for line in tqdm(range(len(idx_to_keep))):
@@ -148,6 +148,7 @@ for seed in range(n_seeds):
     total_metrics = total_metrics[1:,:]
     total_phase = total_phase[1:,:]
     idx_same = np.where((total_metrics[:,1]==0) & (total_metrics[:,2]==0))[0]
+
 
     with open(os.path.join(local_output_path,'list_animal.pkl'),'wb') as f0:
         pickle.dump(list_animal, f0)

@@ -7,7 +7,7 @@ from utils_analysis import *
 import matplotlib.cm as cm
 import warnings
 warnings.filterwarnings('ignore')
-str_group = 'baseline_lowrange_w5'
+str_group = 'baseline_lowrange_longbody'
 output_path = os.path.join(os.getcwd(),'ResultsFigures')
 os.makedirs(output_path,exist_ok=True)
 folder_hildebrand = os.path.join(output_path,f'hildebrandfigures_{str_group}')
@@ -22,6 +22,7 @@ for seed in range(n_seeds):
     list_phasor_data.append(np.load(os.path.join(local_input_path,'phase_metrics.npy')))
     list_hildebrand.append(np.load(os.path.join(local_input_path,'hildebrand_data.npy')))
     list_speed.append(get_speed(list_metrics_data[-1]))
+
 
 bins_limits = np.linspace(0.5,2,11)
 bins_centers = bins_limits[0:-1] + (np.mean(np.diff(bins_limits))/2)

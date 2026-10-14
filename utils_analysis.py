@@ -6,7 +6,39 @@ import scipy.signal as signal
 import scipy.stats
 from tqdm import tqdm
 import warnings
+from sklearn.decomposition import PCA
 warnings.filterwarnings('ignore')
+
+
+def rotate_6legs_data(input_data):
+    """
+    Rotate the 6 legged data to align it with the main movement direction
+    """
+    output_data = np.zeros(input_data.shape)
+    total_x_data = input_data[0,:,:].flatten()
+    total_y_data = input_data[1,:,:].flatten()
+    pcainput = np.hstack((np.expand_dims(total_x_data,1),np.expand_dims(total_y_data,1)))
+    pca = PCA(n_components=2)
+    pca.fit(pcainput)
+    angle = np.arctan(pca.components_[0,1]/pca.components_[0,0])
+    for ii in range(input_data.shape[1]):
+        output_data[0,ii,:] = np.cos(-angle)*input_data[0,ii,:] - np.sin(-angle) * input_data[1,ii,:]
+        output_data[1,ii,:] = np.sin(-angle)*input_data[0,ii,:] + np.cos(-angle) * input_data[1,ii,:]
+
+    return output_data
+
+def reshape_data_6legs(input_data):
+    """
+    Reshapes the input data in the format that allows for proper analysis (6 legged version)
+    """
+    tmp = input_data['foot_1_x'].values
+    output_data = np.zeros((2,7,len(tmp)))
+    vec_str = ['torso_','foot_1_','foot_2_','foot_3_','foot_4_','foot_5_','foot_6_']
+    for marker in range(len(vec_str)):
+        output_data[0, marker,:] = input_data[vec_str[marker]+'x'].values
+        output_data[1, marker,:] = input_data[vec_str[marker]+'y'].values
+
+    return output_data
 
 
 def get_actions(input_data):
@@ -263,7 +295,7 @@ def get_io_time_model_fr(input_foot, input_raw, line, output_metrics):
     head_position_x2, head_position_y2 = input_raw[0,0,time_input2] - ref_position_x, input_raw[1,0,time_input2] - ref_position_y 
     head_velocity_x2, head_velocity_y2 = input_raw[2,0,time_input2], input_raw[3,0,time_input2]
     # Interpolation of the inputs 
-    output_time = np.linspace(0,1,11)
+    output_time = np.linspace(0,1,51)
     head_position_x1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(head_position_x1)), head_position_x1),-1)
     head_position_y1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(head_position_y1)), head_position_y1),-1)
     head_velocity_x1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(head_velocity_x1)), head_velocity_x1),-1)
@@ -318,7 +350,7 @@ def get_io_time_model_fr_self(input_foot, input_raw, line, output_metrics):
     foot_position_x2, foot_position_y2 = input_raw[0,4,time_input2] - ref_position_x, input_raw[1,4,time_input2] - ref_position_y 
     foot_velocity_x2, foot_velocity_y2 = input_raw[2,4,time_input2], input_raw[3,4,time_input2]
     # Interpolation of the inputs 
-    output_time = np.linspace(0,1,11)
+    output_time = np.linspace(0,1,51)
     foot_position_x1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(foot_position_x1)), foot_position_x1),-1)
     foot_position_y1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(foot_position_y1)), foot_position_y1),-1)
     foot_velocity_x1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(foot_velocity_x1)), foot_velocity_x1),-1)
@@ -357,11 +389,11 @@ def get_rsquare_matrix_feedback(tot_animal, tot_input_list, tot_output_list, boo
 
 
     n_animal = np.max(tot_animal).astype(int)+1
-    rsquare_diagonal = np.zeros((n_animal, 11))
-    gains_diagonal = np.zeros((n_animal,11,5))
+    rsquare_diagonal = np.zeros((n_animal, 51))
+    gains_diagonal = np.zeros((n_animal,51,5))
     for animal in tqdm(range(n_animal)):
         idx_animal = np.where(tot_animal==animal)[0]
-        idx_nan = np.where(~np.isnan(tot_input_list[idx_animal,7,0]))[0]
+        idx_nan = np.where(~np.isnan(tot_input_list[idx_animal,37,0]))[0]
         local_input = tot_input_list[idx_animal[idx_nan],:,4*bool_hind:4+4*bool_hind]
         local_output = tot_output_list[idx_animal[idx_nan],3*bool_hind+bool_lat]
         # Normalization of the inputs 
@@ -374,7 +406,7 @@ def get_rsquare_matrix_feedback(tot_animal, tot_input_list, tot_output_list, boo
             continue
         local_input[:,:,2] = local_input[:,:,2] - np.expand_dims(tmp_vel,-1)
         for line in range(local_input.shape[0]):
-            xinput = np.arange(11)
+            xinput = np.arange(51)
             subjectlin = scipy.stats.linregress(xinput, local_input[line,:,0])
             local_input[line,:,0] = local_input[line,:,0] - (xinput*subjectlin.slope + subjectlin.intercept)
         # Normalization of the outputs
@@ -383,7 +415,7 @@ def get_rsquare_matrix_feedback(tot_animal, tot_input_list, tot_output_list, boo
             local_output = local_output - (tmp_vel * subjectlin.slope + subjectlin.intercept)
         else:
             local_output = local_output - np.nanmean(local_output)
-        for time in range(11):
+        for time in range(51):
             design_mat = np.hstack((np.ones((local_input.shape[0],1)),local_input[:,time,:]))
             if not bool_lat:
                 design_mat_y = design_mat[:,[0,1,2,3,4]]
@@ -424,13 +456,13 @@ def get_rsquare_matrix_self(tot_animal, tot_input_self, tot_output_self, bool_hi
     Computes the rsquares matrix for the self prediction
     """
     n_animal = np.max(tot_animal).astype(int) + 1
-    rsquare_diagonal = np.zeros((n_animal,11))
+    rsquare_diagonal = np.zeros((n_animal,51))
     for animal in range(n_animal):
         idx_animal = np.where(tot_animal==animal)[0]
-        idx_nan = np.where(~np.isnan(tot_input_self[idx_animal,7,0]))[0]
+        idx_nan = np.where(~np.isnan(tot_input_self[idx_animal,37,0]))[0]
         local_input = tot_input_self[idx_animal[idx_nan],:,4*bool_hind:4+4*bool_hind]
         local_output = tot_output_self[idx_animal[idx_nan],bool_lat+3*bool_hind] - np.nanmean(tot_output_self[idx_animal[idx_nan],bool_lat+3*bool_hind])
-        for time in range(11):
+        for time in range(51):
             tmp_input_ = local_input[:,time,:]
             design_mat = np.hstack((np.ones((tmp_input_.shape[0],1)),tmp_input_))
             design_mat_y = design_mat

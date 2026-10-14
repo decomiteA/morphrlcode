@@ -157,15 +157,15 @@ def main():
         save_data_with_actions(pipeline_states, actions, env.dt, steps,
                 os.path.join(run_dir, f"data_run{ii}.csv"), env.sys, target_speed)
 
-    trajectory = [
-        jax.tree_util.tree_map(lambda x, i=i: x[i], pipeline_states)
-        for i in range(steps)
-    ]
+        trajectory = [
+            jax.tree_util.tree_map(lambda x, i=i: x[i], pipeline_states)
+            for i in range(steps)
+        ]
 
-    video_path = os.path.join(run_dir, f"rollout.mp4")
-    print(f"Rendering to {video_path} ...")
-    _render_video(trajectory, env.dt, video_path)
-    print(f"Saved: {video_path}")
+        video_path = os.path.join(run_dir, f"rollout_run{ii}.mp4")
+        print(f"Rendering to {video_path} ...")
+        _render_video(trajectory, env.dt, video_path)
+        print(f"Saved: {video_path}")
 
 
 if __name__ == "__main__":
