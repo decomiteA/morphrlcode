@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 dt = 0.01
 n_seeds, n_runs = 8, 50
 
-str_group = "baseline_longrange_d5_"
+str_group = "baseline_lowrange_d5_"
 
 input_path = os.path.join(os.getcwd(),'final_runs')
 for seed in range(n_seeds):
@@ -148,7 +148,7 @@ for seed in range(n_seeds):
         list_corr4.append(local_lags[np.argmax(scipy.signal.correlate(diff_leg1,diff_leg4,'full'))]/list_duration_1[-1])
 
     # Generate the figures and save the data for that seed 
-    total_metrics = total_metrics[1:,:]
+    total_metrics = total_metrics[1:,:] 
     total_phase = total_phase[1:,:]
     idx_same = np.where((total_metrics[:,1]==0) & (total_metrics[:,2]==0))[0]
 
@@ -169,6 +169,11 @@ for seed in range(n_seeds):
     with open(os.path.join(local_output_path,'list_animal_stride.pkl'),'wb') as f6:
         pickle.dump(list_animal_stride,f6)
 
+    with open(os.path.join(local_output_path,'list_target_speed.pkl'),'wb') as f7:
+        pickle.dump(list_target, f7)
+    with open(os.path.join(local_output_path,'list_measured_speed.pkl'),'wb') as f8:
+        pickle.dump(list_true, f8)
+
     # Saving the data once and for all
     np.save(os.path.join(local_output_path,'total_metrics.npy'), total_metrics)
     np.save(os.path.join(local_output_path,'phase_metrics.npy'), total_phase)
@@ -188,7 +193,7 @@ for seed in range(n_seeds):
     fig, axs = plt.subplots(1,1,figsize=(3,3))
     axs.spines[['top','right']].set_visible(False)
     axs.scatter(list_target,list_true, color='k',s=5)
-    axs.plot([1,2],[1,2],color='r',ls=':')
+    axs.plot([0.5,2],[0.5,2],color='r',ls=':')
     axs.set_xlabel('target speed'), axs.set_ylabel('measured speed')
     plt.tight_layout()
     fig.savefig(os.path.join(local_output_path,'figure_speed_tracking.png'),bbox_inches='tight')
