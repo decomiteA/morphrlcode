@@ -2,7 +2,7 @@
   <compiler angle="degree" coordinate="local" inertiafromgeom="true"/>
   <option timestep="0.01" iterations="4" />
   <custom>
-    <numeric data="0.0 0.0 0.7 1.0 0.0 0.0 0.0 0.0 1.0 0.0 -1.0 0.0 -1.0 0.0 1.0" name="init_qpos"/>
+    <numeric data="0.0 0.0 0.8 1.0 0.0 0.0 0.0 0.0 1.0 0.0 -1.0 0.0 -1.0 0.0 1.0" name="init_qpos"/>
     <numeric data="1000" name="constraint_limit_stiffness"/>
     <numeric data="4000" name="constraint_stiffness"/>
     <numeric data="10"   name="constraint_ang_damping"/>

@@ -17,7 +17,7 @@ from rollout import _render_video, _save_data, _save_data_6, save_data_with_acti
 import warnings
 warnings.filterwarnings('ignore')
 jax.config.update("jax_default_matmul_precision", "tensorfloat32")
-
+from env import DEFAULT_XML, CONFIG_1_XML, CONFIG_2_XML, CONFIG_3_XML
 ROLLOUT_NOISE_SCALE = 0.0
 
 
@@ -30,13 +30,24 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--no-rollout",  action="store_true", help="Skip post-training rollout")
     p.add_argument("--seed",        type=int, default=cfg.seed)
     p.add_argument("--num-evals",   type=int, default=cfg.num_evals)
+    p.add_argument("--envname", type=str, default=ENV_NAME)
     return p.parse_args()
 
 def main():
     args = parse_args()
     cfg = PPOConfig()
-    print(ENV_NAME)
-    env = envs.get_environment(ENV_NAME)
+    print(args.envname)
+    env = envs.get_environment(args.envname)
+
+    if args.envname=="custom_ant":
+        local_xml_path = DEFAULT_XML
+    elif args.envname=="custom_horse":
+        local_xml_path = CONFIG_1_XML
+    elif args.envname=="custom_mouse":
+        local_xml_path = CONFIG_2_XML
+    elif args.envname=="custom_monkey":
+        local_xml_path = CONFIG_3_XML
+    
 
     print(f"Observation size : {env.observation_size}")
     print(f"Action size      : {env.action_size}")
@@ -155,7 +166,7 @@ def main():
 
         # Save the data into csv for processing and using for analysis and visuals
         save_data_with_actions(pipeline_states, actions, env.dt, steps,
-                os.path.join(run_dir, f"data_run{ii}.csv"), env.sys, target_speed)
+                os.path.join(run_dir, f"data_run{ii}.csv"), env.sys, target_speed, xml_path=local_xml_path )
 
     trajectory = [
         jax.tree_util.tree_map(lambda x, i=i: x[i], pipeline_states)

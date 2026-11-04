@@ -9,6 +9,10 @@ ENV_NAME_BIS = "custom_ant_bis"
 ENV_NAME_HUMAN = "custom_human"
 ENV_NAME_HEXAPED = "custom_hexaped"
 
+ENV_CONFIG1 = "custom_horse"
+ENV_CONFIG2 = "custom_mouse"
+ENV_CONFIG3 = "custom_monkey"
+
 @dataclass
 class PPOConfig:
     num_envs: int = 8192
@@ -27,7 +31,7 @@ class PPOConfig:
 
     runs_dir: str = "final_runs"
     rollout_steps: int = 10_000
-    n_samples: int = 50
+    n_samples: int = 5
 
     speed_min: float = 0.5    # change range for greater variation in speed, but may require more training time
     speed_max: float = 2.0
