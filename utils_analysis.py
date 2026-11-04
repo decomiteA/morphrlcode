@@ -41,6 +41,18 @@ def reshape_data_6legs(input_data):
     return output_data
 
 
+def get_power(input_data):
+    """
+    Computes the power based on the actions at each joints
+    """
+    tot_power_matrix = np.zeros((8, 8000))
+    act_list = ["hip_4_vel","ankle_4_vel","hip_1_vel","ankle_1_vel","hip_2_vel","ankle_2_vel","hip_3_vel","ankle_3_vel"]
+    for ii in range(tot_power_matrix.shape[0]):
+        tot_power_matrix[ii,:] = np.abs(input_data[f'act_{ii}'].values[2000:] * input_data[act_list[ii]].values[2000:]) * 150
+    power_vector = np.sum(tot_power_matrix,axis=0)
+    return power_vector
+    
+
 def get_actions(input_data):
     """
     Extracts the actions from the raw data

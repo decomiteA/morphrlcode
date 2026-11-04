@@ -123,6 +123,7 @@ def save_data_with_actions(pipeline_states, actions, dt, steps, output_path, sys
     qd       = np.asarray(pipeline_states.qd)        
     pos      = np.asarray(pipeline_states.x.pos)    
     site_pos = np.asarray(pipeline_states.site_xpos) 
+    joint_torques = np.asarray(pipeline_states.qfrc_actuator)
     acts     = np.asarray(actions)                
 
     
@@ -169,6 +170,8 @@ def save_data_with_actions(pipeline_states, actions, dt, steps, output_path, sys
     # Add action channels
     for j in range(acts.shape[1]):
         data[f"act_{j}"] = acts[:, j]
+        data[f"torque_{j}"] = joint_torques[:,j]
+
 
     df = pd.DataFrame(data)
     df.to_csv(output_path, index=False)
