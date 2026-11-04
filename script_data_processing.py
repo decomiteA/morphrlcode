@@ -10,7 +10,7 @@ from tqdm import tqdm
 from utils_analysis import *
 import matplotlib.pyplot as plt 
 
-dt = 0.05
+dt = 0.01
 n_seeds, n_runs = 8, 50
 
 str_group = "baseline_longrange_d5_"
