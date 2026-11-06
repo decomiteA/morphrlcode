@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 
 dt = 0.01
 n_seeds, n_runs = 8, 50
-
-str_group = "baseline_lowrange_d5_"
+n_interp = 51
+str_group = "baseline_lowrange_d5_nonrg_"
 
 input_path = os.path.join(os.getcwd(),'final_runs')
 for seed in range(n_seeds):
@@ -25,7 +25,7 @@ for seed in range(n_seeds):
     list_corr2, list_corr3 ,list_corr4 = [], [], []
     total_metrics = np.zeros((1,8))
     total_phase = np.zeros((1,7))
-    total_hildebrand = np.zeros((1,4,51))
+    total_hildebrand = np.zeros((1,4,n_interp))
     list_input_body, list_input_self, list_output, list_animal = [], [], [], []
     list_input_stride, list_output_stride, list_animal_stride = [], [] ,[]
     for run in range(n_runs):
@@ -43,7 +43,7 @@ for seed in range(n_seeds):
         total_metrics = np.concatenate((total_metrics, matrix_metrics), axis=0)
 
 
-        hildebrand_matrix = get_hildebrand_data(foot_contact_matrix,matrix_metrics)
+        hildebrand_matrix = get_hildebrand_data(foot_contact_matrix,matrix_metrics,n_interp=n_interp)
         local_hildebrand = np.nanmean(hildebrand_matrix, axis=0)
         total_hildebrand = np.concatenate((total_hildebrand, np.expand_dims(local_hildebrand,axis=0)),axis=0)
         # For the summary statistics (high level)
@@ -56,12 +56,12 @@ for seed in range(n_seeds):
     
         # Getting the foot placement control data 
         idx_to_keep = np.where((matrix_metrics[:,1]==0) & (matrix_metrics[:,2]==0))[0]
-        total_input, total_output, total_input_self = np.zeros((len(idx_to_keep),51,8)), np.zeros((len(idx_to_keep),6)), np.zeros((len(idx_to_keep),51,8))
+        total_input, total_output, total_input_self = np.zeros((len(idx_to_keep),n_interp,8)), np.zeros((len(idx_to_keep),6)), np.zeros((len(idx_to_keep),n_interp,8))
         total_animal = matrix_metrics[idx_to_keep,0]
         idx_nans = np.where(np.isnan(input_data[0,0,:]))[0]
         for line in tqdm(range(len(idx_to_keep))):
-            tmp_input, tmp_output = get_io_time_model_fr(foot_contact_matrix, input_data, matrix_metrics[idx_to_keep[line],:], matrix_metrics)
-            tmp_self, _ = get_io_time_model_fr_self(foot_contact_matrix, input_data, matrix_metrics[idx_to_keep[line],:], matrix_metrics)
+            tmp_input, tmp_output = get_io_time_model_fr(foot_contact_matrix, input_data, matrix_metrics[idx_to_keep[line],:], matrix_metrics, n_interp=n_interp)
+            tmp_self, _ = get_io_time_model_fr_self(foot_contact_matrix, input_data, matrix_metrics[idx_to_keep[line],:], matrix_metrics, n_interp=n_interp)
             if tmp_output is None:
                 total_input[line,:], total_output[line,:], total_input_self[line,:] = np.nan, np.nan, np.nan
             elif tmp_output.shape[1]!=0:
@@ -83,10 +83,10 @@ for seed in range(n_seeds):
         list_animal.append(total_animal)
        
         idx_to_keep = np.where((matrix_metrics[:,1]==0) & (matrix_metrics[:,2]==0))[0]
-        total_input, total_output = np.zeros((len(idx_to_keep),51,4)), np.zeros((len(idx_to_keep),14))
+        total_input, total_output = np.zeros((len(idx_to_keep),n_interp,4)), np.zeros((len(idx_to_keep),14))
         total_animal = matrix_metrics[idx_to_keep,0]
         for line in tqdm(range(len(idx_to_keep))):
-            tmp_input, tmp_output = get_io_time_model_cycle_front(foot_contact_matrix, input_data, matrix_metrics[idx_to_keep[line],:], matrix_metrics)
+            tmp_input, tmp_output = get_io_time_model_cycle_front(foot_contact_matrix, input_data, matrix_metrics[idx_to_keep[line],:], matrix_metrics, n_interp=n_interp)
             if tmp_output is None:
                 total_input[line,:], total_output[line,:] = np.nan, np.nan
             elif tmp_output.shape[1]!=0:

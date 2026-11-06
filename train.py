@@ -47,8 +47,8 @@ def main():
         local_xml_path = CONFIG_2_XML
     elif args.envname=="custom_monkey":
         local_xml_path = CONFIG_3_XML
-    
-
+    print(args.envname)
+    print(local_xml_path)
     print(f"Observation size : {env.observation_size}")
     print(f"Action size      : {env.action_size}")
     print(f"Devices          : {jax.devices()}")
@@ -175,7 +175,7 @@ def main():
 
     video_path = os.path.join(run_dir, f"rollout_run.mp4")
     print(f"Rendering to {video_path} ...")
-    _render_video(trajectory, env.dt, video_path)
+    _render_video(trajectory, env.dt, video_path,xml_path=local_xml_path)
     print(f"Saved: {video_path}")
 
 

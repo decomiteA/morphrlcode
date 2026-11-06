@@ -60,7 +60,7 @@ class MorphologyEnv(PipelineEnv):
             'opt.ls_iterations': 4,
         })
 
-        kwargs['n_frames'] = kwargs.get('n_frames', 1)
+        kwargs['n_frames'] = kwargs.get('n_frames', 5)
         super().__init__(sys=sys, backend='mjx', **kwargs)
 
         self._ctrl_cost_weight = ctrl_cost_weight

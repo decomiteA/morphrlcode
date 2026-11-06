@@ -285,7 +285,7 @@ def extract_phasor_metrics(input_raw, input_foot, input_video, framerate=100, le
     return output_matrix[1:,:]
 
 
-def get_io_time_model_fr(input_foot, input_raw, line, output_metrics):
+def get_io_time_model_fr(input_foot, input_raw, line, output_metrics, n_interp=51):
     """
     Computes the inputs and outputs for the feedback analyses
     """
@@ -307,7 +307,7 @@ def get_io_time_model_fr(input_foot, input_raw, line, output_metrics):
     head_position_x2, head_position_y2 = input_raw[0,0,time_input2] - ref_position_x, input_raw[1,0,time_input2] - ref_position_y 
     head_velocity_x2, head_velocity_y2 = input_raw[2,0,time_input2], input_raw[3,0,time_input2]
     # Interpolation of the inputs 
-    output_time = np.linspace(0,1,51)
+    output_time = np.linspace(0,1,n_interp)
     head_position_x1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(head_position_x1)), head_position_x1),-1)
     head_position_y1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(head_position_y1)), head_position_y1),-1)
     head_velocity_x1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(head_velocity_x1)), head_velocity_x1),-1)
@@ -338,7 +338,7 @@ def get_io_time_model_fr(input_foot, input_raw, line, output_metrics):
     output_array = np.expand_dims(np.array([final_position_x_1, final_position_y_1, time_contact_1, final_position_x_2, final_position_y_2, time_contact_2]),-1)
     return input_array, output_array 
 
-def get_io_time_model_fr_self(input_foot, input_raw, line, output_metrics):
+def get_io_time_model_fr_self(input_foot, input_raw, line, output_metrics,n_interp):
     """
     Computes the inputs and outputs for the feedback analyses
     """
@@ -362,7 +362,7 @@ def get_io_time_model_fr_self(input_foot, input_raw, line, output_metrics):
     foot_position_x2, foot_position_y2 = input_raw[0,4,time_input2] - ref_position_x, input_raw[1,4,time_input2] - ref_position_y 
     foot_velocity_x2, foot_velocity_y2 = input_raw[2,4,time_input2], input_raw[3,4,time_input2]
     # Interpolation of the inputs 
-    output_time = np.linspace(0,1,51)
+    output_time = np.linspace(0,1,n_interp)
     foot_position_x1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(foot_position_x1)), foot_position_x1),-1)
     foot_position_y1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(foot_position_y1)), foot_position_y1),-1)
     foot_velocity_x1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(foot_velocity_x1)), foot_velocity_x1),-1)
@@ -394,18 +394,18 @@ def get_io_time_model_fr_self(input_foot, input_raw, line, output_metrics):
     return input_array, output_array 
 
 
-def get_rsquare_matrix_feedback(tot_animal, tot_input_list, tot_output_list, bool_hind, bool_lat):
+def get_rsquare_matrix_feedback(tot_animal, tot_input_list, tot_output_list, bool_hind, bool_lat, n_interp=51):
     """
     Computes the rsquare matrix for the linear prediction of the foot contact location around the nominal 
     """
 
 
     n_animal = np.max(tot_animal).astype(int)+1
-    rsquare_diagonal = np.zeros((n_animal, 51))
-    gains_diagonal = np.zeros((n_animal,51,5))
+    rsquare_diagonal = np.zeros((n_animal, n_interp))
+    gains_diagonal = np.zeros((n_animal,n_interp,5))
     for animal in tqdm(range(n_animal)):
         idx_animal = np.where(tot_animal==animal)[0]
-        idx_nan = np.where(~np.isnan(tot_input_list[idx_animal,37,0]))[0]
+        idx_nan = np.where(~np.isnan(tot_input_list[idx_animal,np.floor(0.75*n_interp).astype(int),0]))[0]
         local_input = tot_input_list[idx_animal[idx_nan],:,4*bool_hind:4+4*bool_hind]
         local_output = tot_output_list[idx_animal[idx_nan],3*bool_hind+bool_lat]
         # Normalization of the inputs 
@@ -418,7 +418,7 @@ def get_rsquare_matrix_feedback(tot_animal, tot_input_list, tot_output_list, boo
             continue
         local_input[:,:,2] = local_input[:,:,2] - np.expand_dims(tmp_vel,-1)
         for line in range(local_input.shape[0]):
-            xinput = np.arange(51)
+            xinput = np.arange(n_interp)
             subjectlin = scipy.stats.linregress(xinput, local_input[line,:,0])
             local_input[line,:,0] = local_input[line,:,0] - (xinput*subjectlin.slope + subjectlin.intercept)
         # Normalization of the outputs
@@ -427,7 +427,7 @@ def get_rsquare_matrix_feedback(tot_animal, tot_input_list, tot_output_list, boo
             local_output = local_output - (tmp_vel * subjectlin.slope + subjectlin.intercept)
         else:
             local_output = local_output - np.nanmean(local_output)
-        for time in range(51):
+        for time in range(n_interp):
             design_mat = np.hstack((np.ones((local_input.shape[0],1)),local_input[:,time,:]))
             if not bool_lat:
                 design_mat_y = design_mat[:,[0,1,2,3,4]]
@@ -463,18 +463,18 @@ def get_speed(input_metrics):
         output_speed[group] = np.nanmedian(input_metrics[idx_local,6])
     return output_speed
 
-def get_rsquare_matrix_self(tot_animal, tot_input_self, tot_output_self, bool_hind, bool_lat):
+def get_rsquare_matrix_self(tot_animal, tot_input_self, tot_output_self, bool_hind, bool_lat,n_interp):
     """
     Computes the rsquares matrix for the self prediction
     """
     n_animal = np.max(tot_animal).astype(int) + 1
-    rsquare_diagonal = np.zeros((n_animal,51))
+    rsquare_diagonal = np.zeros((n_animal,n_interp))
     for animal in range(n_animal):
         idx_animal = np.where(tot_animal==animal)[0]
-        idx_nan = np.where(~np.isnan(tot_input_self[idx_animal,37,0]))[0]
+        idx_nan = np.where(~np.isnan(tot_input_self[idx_animal,np.floor(n_interp*0.75).astype(int),0]))[0]
         local_input = tot_input_self[idx_animal[idx_nan],:,4*bool_hind:4+4*bool_hind]
         local_output = tot_output_self[idx_animal[idx_nan],bool_lat+3*bool_hind] - np.nanmean(tot_output_self[idx_animal[idx_nan],bool_lat+3*bool_hind])
-        for time in range(51):
+        for time in range(n_interp):
             tmp_input_ = local_input[:,time,:]
             design_mat = np.hstack((np.ones((tmp_input_.shape[0],1)),tmp_input_))
             design_mat_y = design_mat
@@ -485,11 +485,11 @@ def get_rsquare_matrix_self(tot_animal, tot_input_self, tot_output_self, bool_hi
     
     return rsquare_diagonal
 
-def get_hildebrand_data(tot_foot_contact_data, tot_metrics):
+def get_hildebrand_data(tot_foot_contact_data, tot_metrics, n_interp=51):
     """
     Represents the hildebrand data from the contact information and the 
     """
-    interpolation_x = np.linspace(0,1,51)
+    interpolation_x = np.linspace(0,1,n_interp)
     hildebrand_matrix = np.zeros((1,4, len(interpolation_x)))
     idx_same = np.where((tot_metrics[:,1]==0) & (tot_metrics[:,2]==0))[0] # We grab the cycles we are interested in.
     # For each of those, we compute grab the corresponding contact matrix ... 
@@ -520,7 +520,7 @@ def get_avg_speed(animal_data, input_data):
         output_data[animal] = np.nanmean(np.nanmean(input_data[idx_local,:,2],axis=1),axis=0)
     return output_data
 
-def get_io_time_model_cycle_front(input_foot, input_raw, line, output_metrics):
+def get_io_time_model_cycle_front(input_foot, input_raw, line, output_metrics, n_interp=51):
     """
     Computes the inputs and outputs at the gait cycle level for the marmoset data
     The outputs contains the following information
@@ -546,7 +546,7 @@ def get_io_time_model_cycle_front(input_foot, input_raw, line, output_metrics):
     head_position_x1, head_position_y1 = input_raw[0,0,time_input1] - ref_position_x, input_raw[1,0,time_input1] - ref_position_y
     head_velocity_x1, head_velocity_y1 = input_raw[2,0,time_input1], input_raw[3,0,time_input1]
     # Interpolation of the inputs
-    output_time = np.linspace(0,1,51)
+    output_time = np.linspace(0,1,n_interp)
     head_position_x1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(head_position_x1)), head_position_x1),-1)
     head_position_y1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(head_position_y1)), head_position_y1),-1)
     head_velocity_x1_ = np.expand_dims(np.interp(output_time, np.linspace(0,1,len(head_velocity_x1)), head_velocity_x1),-1)
