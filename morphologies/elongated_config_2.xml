@@ -2,7 +2,7 @@
   <compiler angle="degree" coordinate="local" inertiafromgeom="true"/>
   <option timestep="0.01" iterations="4" />
   <custom>
-    <numeric data="0.0 0.0 0.95 1.0 0.0 0.0 0.0 0.0 1.0 0.0 -1.0 0.0 -1.0 0.0 1.0" name="init_qpos"/>
+    <numeric data="0.0 0.0 0.95 1.0 0.0 0.0 0.0 0.0 0.0 0.0 -0.0 0.0 0.0 0.0 0.0 0.0 0.0" name="init_qpos"/>
     <numeric data="1000" name="constraint_limit_stiffness"/>
     <numeric data="4000" name="constraint_stiffness"/>
     <numeric data="10"   name="constraint_ang_damping"/>
@@ -31,7 +31,7 @@
     <geom conaffinity="1" condim="3" material="MatPlane" name="floor" pos="0 0 0" size="500 500 500" type="plane" rgba="0.5 0.5 0.5 1.0"/>
     <body name="torso" pos="0 0 0.8">
       <camera name="track" mode="trackcom" pos="0 -3 0.3" xyaxes="1 0 0 0 0 1"/>
-      <geom name="torso_geom" fromto="-0.4 0 0 0.4 0 0" size="0.15" type="capsule" contype="1"/>
+      <geom name="torso_geom" fromto="-0.5 0 0 0.4 0 0" size="0.15" type="capsule" contype="1"/>
       <joint armature="0" damping="0" limited="false" margin="0.01" name="root" pos="0 0 0" type="free"/>
       <body name="front_left_leg" pos="0.4 0.2 0">
         <body name="aux_1" pos="0 0 0">
@@ -57,27 +57,33 @@
           </body>
         </body>
       </body>
-      <body name="back_leg" pos="-0.4 0.2 0">
+      <body name="back_leg" pos="-0.5 0.2 0">
         <body name="aux_3" pos="0 0 0">
-          <joint axis="0 1 0" name="hip_3" pos="0 0 0" range="-90 45" type="hinge"/>
-          <geom fromto="0 0 0 -0.35 0 -0.35" name="aux_3_geom" size="0.08" type="capsule"/>
-          <body name="ankle_body_3" pos="-0.35 0 -0.35">
-            <joint axis="0 1 0" name="ankle_3" pos="0 0 0" range="0 90" type="hinge"/>
-            <geom fromto="0 0 0 0.35 0 -0.35" name="third_ankle_geom" size="0.08" type="capsule" contype="1"/>
-            <geom name="third_foot_geom" contype="1" pos="0.35 0 -0.35" size="0.08" type="sphere" mass="0"/>
-            <site name="foot_site_3" pos="0.35 0 -0.35" size="0.02"/>
+          <joint axis="0 1 0" name="hip_3" pos="0 0 0" range="0 90" type="hinge"/>
+          <geom fromto="0 0 0 0.35 0 -0.35" name="aux_3_geom" size="0.08" type="capsule"/>
+          <body name="ankle_body_3" pos="0.35 0 -0.35">
+            <joint axis="0 1 0" name="knee_3" pos="0 0 0" range="-90 45" type="hinge"/>
+            <geom fromto="0 0 0 -0.25 0 -0.25" name="third_knee_geom" size="0.08" type="capsule" contype="1"/>
+            <body name="foot_body_3" pos="-0.25 0 -0.25">
+                <joint axis="0 1 0" name="ankle_3" pos="0 0 0" range="0 90" type="hinge"/>
+                <geom fromto="0 0 0 0.15 0 -0.15" name="third_foot_geom" size="0.08" type="capsule" contype="1"/>
+                <site name="foot_site_3" pos="0.15 0 -0.15" size="0.02"/>
+            </body>
           </body>
         </body>
       </body>
-      <body name="right_back_leg" pos="-0.4 -0.2 0">
+      <body name="right_back_leg" pos="-0.5 -0.2 0">
         <body name="aux_4" pos="0 0 0">
-          <joint axis="0 1 0" name="hip_4" pos="0 0 0" range="-90 45" type="hinge"/>
-          <geom fromto="0 0 0 -0.35 0 -0.35" name="aux_4_geom" size="0.08" type="capsule"/>
-          <body name="ankle_body_4" pos="-0.35 0 -0.35">
-            <joint axis="0 1 0" name="ankle_4" pos="0 0 0" range="0 90" type="hinge"/>
-            <geom fromto="0 0 0 0.35 0 -0.35" name="fourth_ankle_geom" size="0.08" type="capsule" contype="1"/>
-            <geom name="fourth_foot_geom" contype="1" pos="0.35 0 -0.35" size="0.08" type="sphere" mass="0"/>
-            <site name="foot_site_4" pos="0.35 0 -0.35" size="0.02"/>
+          <joint axis="0 1 0" name="hip_4" pos="0 0 0" range="0 90" type="hinge"/>
+          <geom fromto="0 0 0 0.35 0 -0.35" name="aux_4_geom" size="0.08" type="capsule"/>
+          <body name="ankle_body_4" pos="0.35 0 -0.35">
+            <joint axis="0 1 0" name="knee_4" pos="0 0 0" range="0 90" type="hinge"/>
+            <geom fromto="0 0 0 -0.25 0 -0.25" name="fourth_knee_geom" size="0.08" type="capsule" contype="1"/>
+            <body name="foot_body_4" pos="-0.25 0 -0.25">
+                <joint axis="0 1 0" name="ankle_4" pos="0 0 0" range="0 90" type="hinge"/>
+                <geom fromto="0 0 0 0.15 0 -0.15" name="fourth_foot_geom" size="0.08" type="capsule" contype="1"/>
+                <site name="foot_site_4" pos="0.15 0 -0.15" size="0.02"/>
+            </body>
           </body>
         </body>
       </body>
@@ -85,12 +91,14 @@
   </worldbody>
   <actuator>
     <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="hip_4"   gear="279.3"/>
+    <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="knee_3"  gear="279.3"/>
     <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="ankle_4" gear="279.3"/>
     <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="hip_1"   gear="279.3"/>
     <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="ankle_1" gear="279.3"/>
     <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="hip_2"   gear="279.3"/>
     <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="ankle_2" gear="279.3"/>
     <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="hip_3"   gear="279.3"/>
+    <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="knee_3"  gear="279.3"/>
     <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="ankle_3" gear="279.3"/>
   </actuator>
 </mujoco>
