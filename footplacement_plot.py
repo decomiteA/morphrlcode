@@ -7,10 +7,11 @@ from utils_analysis import *
 
 output_path = os.path.join('FinalFigures')
 n_seeds = 8
-tot_rsquare_body_lateral, tot_rsquare_self_lateral, tot_avg_speed = np.zeros((1,51)), np.zeros((1,51)), np.zeros((1,1))
-tot_rsquare_body_foreaft, tot_rsquare_self_foreaft = np.zeros((1,51)), np.zeros((1,51))
+n_interp = 51
+tot_rsquare_body_lateral, tot_rsquare_self_lateral, tot_avg_speed = np.zeros((1,n_interp)), np.zeros((1,n_interp)), np.zeros((1,1))
+tot_rsquare_body_foreaft, tot_rsquare_self_foreaft = np.zeros((1,n_interp)), np.zeros((1,n_interp))
 for seed in range(n_seeds):
-    input_path = os.path.join(os.getcwd(),'final_runs',f'baseline_lowrange_d5_seed_{seed+1}','results')
+    input_path = os.path.join(os.getcwd(),'final_runs',f'baseline_smooth_d5_seed_{seed+1}','results')
 
     with open(os.path.join(input_path,'list_animal.pkl'),'rb') as f1:
         list_animal = pickle.load(f1)
@@ -35,12 +36,12 @@ for seed in range(n_seeds):
         tot_output = np.concatenate((tot_output, list_output[run]),axis=0)
 
     avg_speed = get_avg_speed(tot_animal_data[1:], tot_input_body[1:,:,:])
-    rsquare_body_lateral, gains_body_lateral = get_rsquare_matrix_feedback(tot_animal_data[1:], tot_input_body[1:,:,:], tot_output[1:,:], bool_hind=True, bool_lat=True)
-    rsquare_self_lateral = get_rsquare_matrix_self(tot_animal_data[1:], tot_input_self[1:,:,:], tot_output[1:,:], bool_hind=True, bool_lat=True)
+    rsquare_body_lateral, gains_body_lateral = get_rsquare_matrix_feedback(tot_animal_data[1:], tot_input_body[1:,:,:], tot_output[1:,:], bool_hind=False, bool_lat=True,n_interp=n_interp)
+    rsquare_self_lateral = get_rsquare_matrix_self(tot_animal_data[1:], tot_input_self[1:,:,:], tot_output[1:,:], bool_hind=False, bool_lat=True,n_interp=n_interp)
 
 
-    rsquare_body_foreaft, gains_body_foreaft = get_rsquare_matrix_feedback(tot_animal_data[1:], tot_input_body[1:,:,:], tot_output[1:,:], bool_hind=True, bool_lat=False)
-    rsquare_self_foreaft = get_rsquare_matrix_self(tot_animal_data[1:], tot_input_self[1:,:,:], tot_output[1:,:], bool_hind=True, bool_lat=False)
+    rsquare_body_foreaft, gains_body_foreaft = get_rsquare_matrix_feedback(tot_animal_data[1:], tot_input_body[1:,:,:], tot_output[1:,:], bool_hind=False, bool_lat=False, n_interp=n_interp)
+    rsquare_self_foreaft = get_rsquare_matrix_self(tot_animal_data[1:], tot_input_self[1:,:,:], tot_output[1:,:], bool_hind=False, bool_lat=False,n_interp=n_interp)
 
 
     tot_rsquare_body_lateral = np.concatenate((tot_rsquare_body_lateral,rsquare_body_lateral),axis=0)
@@ -61,10 +62,10 @@ tot_avg_speed = tot_avg_speed[1:,:]
 
 bins_limits = np.linspace(0.5,2,11)
 bins_centers = bins_limits[0:-1] + (np.mean(np.diff(bins_limits))/2)
-matrix_body_lateral = np.zeros((len(bins_centers), 51))
-matrix_self_lateral = np.zeros((len(bins_centers), 51))
-matrix_body_foreaft = np.zeros((len(bins_centers), 51))
-matrix_self_foreaft = np.zeros((len(bins_centers), 51))
+matrix_body_lateral = np.zeros((len(bins_centers), n_interp))
+matrix_self_lateral = np.zeros((len(bins_centers), n_interp))
+matrix_body_foreaft = np.zeros((len(bins_centers), n_interp))
+matrix_self_foreaft = np.zeros((len(bins_centers), n_interp))
 for bin in range(len(bins_centers)):
     idx_local = np.where((avg_speed>bins_limits[bin]) & (avg_speed<bins_limits[bin+1]))[0]
     matrix_body_lateral[bin,:] = np.nanmedian(tot_rsquare_body_lateral[idx_local,:],axis=0)
@@ -77,15 +78,16 @@ for bin in range(len(bins_centers)):
 
 
     fig, axs = plt.subplots(1,2,figsize=(6,3),sharey=True)
+    fig.suptitle(f"speed bin {bin}", fontweight='bold')
     axs[0].spines[['top','right']].set_visible(False)
-    axs[0].plot(np.arange(51),matrix_body_lateral[bin,:],'k',lw=2)
-    axs[0].plot(np.arange(51),matrix_self_lateral[bin,:],'r',lw=2)
+    axs[0].plot(np.arange(n_interp),matrix_body_lateral[bin,:],'k',lw=2)
+    axs[0].plot(np.arange(n_interp),matrix_self_lateral[bin,:],'r',lw=2)
     axs[1].spines[['top','right']].set_visible(False)
-    axs[1].plot(np.arange(51),matrix_body_foreaft[bin,:],'k',lw=2)
-    axs[1].plot(np.arange(51),matrix_self_foreaft[bin,:],'r',lw=2)
+    axs[1].plot(np.arange(n_interp),matrix_body_foreaft[bin,:],'k',lw=2)
+    axs[1].plot(np.arange(n_interp),matrix_self_foreaft[bin,:],'r',lw=2)
     axs[0].set_ylim([-0.05,1.05])
     plt.tight_layout()
-    plt.show()
+plt.show()
     # fig.savefig(os.path.join(output_path,f'AAAAAA_{bin}.png'),bbox_inches='tight')
 
 

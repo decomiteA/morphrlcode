@@ -7,7 +7,7 @@ from utils_analysis import *
 import matplotlib.cm as cm
 import warnings
 warnings.filterwarnings('ignore')
-str_group = 'baseline_lowrange_d5'
+str_group = 'baseline_smooth_d5'
 output_path = os.path.join(os.getcwd(),'FinalFigures')
 os.makedirs(output_path,exist_ok=True)
 folder_hildebrand = os.path.join(output_path,f'hildebrandfigures_{str_group}')

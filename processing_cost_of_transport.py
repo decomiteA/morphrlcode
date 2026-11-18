@@ -8,7 +8,7 @@ from utils_analysis import *
 import matplotlib.pyplot as plt 
 
 
-str_group = 'baseline_lowrange_d5'
+str_group = 'baseline_smooth_d5'
 
 dt = 0.01
 n_seeds, n_runs = 8, 50
@@ -24,7 +24,7 @@ for seed in range(n_seeds):
     os.makedirs(local_output_path, exist_ok=True)
     list_target, list_cot_power = [], []
 
-    for run in range(n_runs):
+    for run in tqdm(range(n_runs)):
         local_data = pd.read_csv(os.path.join(input_path,f'{str_group}_seed_{seed+1}',f'data_run{run}.csv'))
         actions_data = get_actions(local_data)
         power_vector = get_power(local_data)
@@ -46,4 +46,5 @@ axs.fill_between(bins_centers, np.nanpercentile(tot_matrix_cot,axis=0,q=25), np.
 axs.set_xlabel('speed'), axs.set_ylabel('cost of transport')
 fig.savefig(os.path.join(output_path,f'{str_group}_cost_of_transport.png'),bbox_inches='tight')
 fig.savefig(os.path.join(output_path,f'{str_group}_cost_of_transport.svg'),bbox_inches='tight')
+plt.tight_layout()
 plt.show()
