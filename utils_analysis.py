@@ -356,6 +356,17 @@ def get_io_time_model_fr_self(input_foot, input_raw, line, output_metrics,n_inte
 
 
 
+    fig, axs = plt.subplots(1,1,figsize=(3,3))
+    axs.spines[['top','right']].set_visible(False)
+    axs.plot(input_raw[0,1,time_input1],input_raw[1,1,time_input2], color='r')
+    axs.plot(input_raw[0,2,time_input1],input_raw[1,2,time_input2], color='b')
+    axs.plot(input_raw[0,3,time_input1],input_raw[1,3,time_input2], color='g')
+    axs.plot(input_raw[0,4,time_input1],input_raw[1,4,time_input2], color='m')I
+    axs.scatter(input_foot[0,1,idx_meta+idx_next_fc0[0]+1],input_foot[0,1,idx_meta+idx_next_fc0[0]+1],s=20,color='b')
+    axs.scatter(input_foot[0,3,idx_meta+idx_next_fc1[0]+1],input_foot[0,3,idx_meta+idx_next_fc1[0]+1],s=20,color='m')
+    plt.tight_layout()
+    plt.show()
+
     ##############
     ### INPUTS ###
     ##############
