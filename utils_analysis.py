@@ -325,13 +325,13 @@ def get_io_time_model_fr(input_foot, input_raw, line, output_metrics, n_interp=5
     idx_same1 = np.where((output_metrics[:,0]==line[0]) & (output_metrics[:,2]==1) & (output_metrics[:,-1]==line[-1]))[0]
     if len(idx_same1)==0:
         return input_array, None
-    final_position_x_1, final_position_y_1 = input_foot[0,1,idx_meta+idx_next_fc0[0]+1] - ref_position_x, input_foot[1,1,idx_meta+idx_next_fc0[0]+1] - ref_position_y
+    final_position_x_1, final_position_y_1 = input_raw[0,2,idx_meta+idx_next_fc0[0]+1] - ref_position_x, input_raw[1,2,idx_meta+idx_next_fc0[0]+1] - ref_position_y
     time_contact_1 = output_metrics[idx_same1,3][0]
 
     idx_same2 = np.where((output_metrics[:,0]==line[0]) & (output_metrics[:,2]==3) & (output_metrics[:,-1]==line[-1]))[0]
     if len(idx_same2)==0:
         return input_array, None
-    final_position_x_2, final_position_y_2 = input_foot[0,3,idx_meta+idx_next_fc1[0]+1] - ref_position_x, input_foot[1,3,idx_meta+idx_next_fc1[0]+1] - ref_position_y
+    final_position_x_2, final_position_y_2 = input_raw[0,4,idx_meta+idx_next_fc1[0]+1] - ref_position_x, input_raw[1,4,idx_meta+idx_next_fc1[0]+1] - ref_position_y
     time_contact_2 = output_metrics[idx_same2,3][0]
 
 
@@ -353,6 +353,8 @@ def get_io_time_model_fr_self(input_foot, input_raw, line, output_metrics,n_inte
     ref_position_x, ref_position_y = input_foot[0,0,idx_meta], input_foot[1,0,idx_meta] 
     time_input1 = np.arange(idx_meta-idx_prev_fc0[0], idx_meta + idx_next_fc0[0]+1)
     time_input2 = np.arange(idx_meta-idx_prev_fc1[0], idx_meta + idx_next_fc1[0]+1)
+
+
 
     ##############
     ### INPUTS ###
@@ -380,13 +382,13 @@ def get_io_time_model_fr_self(input_foot, input_raw, line, output_metrics,n_inte
     idx_same1 = np.where((output_metrics[:,0]==line[0]) & (output_metrics[:,2]==1) & (output_metrics[:,-1]==line[-1]))[0]
     if len(idx_same1)==0:
         return input_array, None
-    final_position_x_1, final_position_y_1 = input_foot[0,1,idx_meta+idx_next_fc0[0]+1] - ref_position_x, input_foot[1,1,idx_meta+idx_next_fc0[0]+1] - ref_position_y
+    final_position_x_1, final_position_y_1 = input_raw[0,2,idx_meta+idx_next_fc0[0]+1] - ref_position_x, input_foot[1,2,idx_meta+idx_next_fc0[0]+1] - ref_position_y
     time_contact_1 = output_metrics[idx_same1,3][0]
 
     idx_same2 = np.where((output_metrics[:,0]==line[0]) & (output_metrics[:,2]==3) & (output_metrics[:,-1]==line[-1]))[0]
     if len(idx_same2)==0:
         return input_array, None
-    final_position_x_2, final_position_y_2 = input_foot[0,3,idx_meta+idx_next_fc1[0]+1] - ref_position_x, input_foot[1,3,idx_meta+idx_next_fc1[0]+1] - ref_position_y
+    final_position_x_2, final_position_y_2 = input_raw[0,4,idx_meta+idx_next_fc1[0]+1] - ref_position_x, input_raw[1,4,idx_meta+idx_next_fc1[0]+1] - ref_position_y
     time_contact_2 = output_metrics[idx_same2,3][0]
 
 
