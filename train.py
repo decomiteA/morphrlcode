@@ -47,6 +47,8 @@ def main():
         local_xml_path = CONFIG_2_XML
     elif args.envname=="custom_monkey":
         local_xml_path = CONFIG_3_XML
+    elif args.envname=="custom_ant_bis":
+        local_xml_path = DEFAULT_XML
     print(args.envname)
     print(local_xml_path)
     print(f"Observation size : {env.observation_size}")
