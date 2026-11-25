@@ -136,7 +136,7 @@ class MorphologyEnv(PipelineEnv):
 
 
         obs = self._get_obs(pipeline_state, target_speed)
-        reward = speed_reward + straight_reward + healthy_reward - ctrl_cost  + straight_reward 
+        reward = speed_reward + straight_reward + healthy_reward - ctrl_cost 
         done = 1.0 - is_healthy if self._terminate_when_unhealthy else 0.0
         state.metrics.update(
             reward_speed=speed_reward,
