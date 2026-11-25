@@ -100,14 +100,14 @@ def _render_video_6(trajectory, dt, output_path, width=640, height=480,
     renderer.close()
     imageio.mimsave(output_path, frames, fps=fps)
 
-def save_data_with_actions(pipeline_states, actions, dt, steps, output_path, sys, target_speed=None):
+def save_data_with_actions(pipeline_states, actions, dt, steps, output_path, sys, target_speed=None, xml_path=None):
     """
     Saves rollout kinematics and actions
     """
     link_names = list(sys.link_names)
     torso_idx = link_names.index("torso")
 
-    mj_model = mujoco.MjModel.from_xml_path(DEFAULT_XML)
+    mj_model = mujoco.MjModel.from_xml_path(xml_path or DEFAULT_XML)
 
     def _site_id(name):
         return mujoco.mj_name2id(mj_model, mujoco.mjtObj.mjOBJ_SITE, name)
@@ -247,7 +247,7 @@ def _save_data(pipeline_states, dt, steps, output_path, sys, target_speed=None):
     df.to_csv(output_path, index=False)
     print(f"Saved: {output_path}  ({len(df)} rows, {len(df.columns)} columns)")
 
-def _save_data_6(pipeline_states, dt, steps, output_path, sys, target_speed=None):
+def _save_data_6(pipeline_states, actions, dt, steps, output_path, sys, target_speed=None):
     link_names = list(sys.link_names)
     torso_idx  = link_names.index("torso")
 
@@ -269,6 +269,10 @@ def _save_data_6(pipeline_states, dt, steps, output_path, sys, target_speed=None
     qd       = np.asarray(pipeline_states.qd)          # (steps, nv)
     pos      = np.asarray(pipeline_states.x.pos)       # (steps, nlinks, 3)
     site_pos = np.asarray(pipeline_states.site_xpos)   # (steps, nsites, 3)
+    acts     = np.asarray(actions)   
+
+    if acts.shape[0] != steps:
+        raise ValueError(f"actions first dim ({acts.shape[0]}) != steps ({steps})")
 
     foot_pos = {
         name: site_pos[:, sid, :]
@@ -317,6 +321,10 @@ def _save_data_6(pipeline_states, dt, steps, output_path, sys, target_speed=None
         data[f"{name}_vx"] = np.gradient(fp[:, 0], float(dt))
         data[f"{name}_vy"] = np.gradient(fp[:, 1], float(dt))
         data[f"{name}_vz"] = np.gradient(fp[:, 2], float(dt))
+
+    # Add action channels
+    for j in range(acts.shape[1]):
+        data[f"act_{j}"] = acts[:, j]
 
     df = pd.DataFrame(data)
     df.to_csv(output_path, index=False)
